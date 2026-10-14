@@ -4,12 +4,16 @@ import { Menu, X, Download } from "lucide-react";
 const NAV_LINKS = [
   { href: "#features", label: "Features" },
   { href: "#estimator", label: "Estimate" },
+  { href: "#demo", label: "Try Demo" },
+  { href: "#architecture", label: "Architecture" },
   { href: "#preview", label: "App" },
   { href: "#faq", label: "FAQ" },
   { href: "#download", label: "Download", action: "waitlist" },
 ];
 
-const DESKTOP_LINKS = ["#features", "#estimator", "#preview", "#faq"];
+/* Compact set shown between lg and xl, where the full bar would crowd. */
+const COMPACT_LINKS = ["#demo", "#architecture", "#faq"];
+const FULL_LINKS = ["#features", "#estimator", "#demo", "#architecture", "#preview", "#faq"];
 
 export default function Navigation({ onDownload }) {
   const [scrolled, setScrolled] = useState(false);
@@ -59,8 +63,8 @@ export default function Navigation({ onDownload }) {
           </span>
         </a>
 
-        <nav aria-label="Primary" className="hidden items-center gap-7 lg:flex">
-          {NAV_LINKS.filter((link) => DESKTOP_LINKS.includes(link.href)).map(
+        <nav aria-label="Primary" className="hidden items-center gap-6 lg:flex xl:hidden">
+          {NAV_LINKS.filter((link) => COMPACT_LINKS.includes(link.href)).map(
             (link) => (
               <a
                 key={link.href}
@@ -71,15 +75,30 @@ export default function Navigation({ onDownload }) {
               </a>
             )
           )}
-          <button
-            type="button"
-            onClick={openWaitlist}
-            className="inline-flex h-9 items-center gap-2 border border-hairline-strong bg-surface px-4 text-[0.8125rem] font-medium text-ink transition-colors duration-200 hover:border-accent/50 hover:text-accent"
-          >
-            <Download className="h-3.5 w-3.5" aria-hidden="true" />
-            Download App
-          </button>
         </nav>
+
+        <nav aria-label="Primary" className="hidden items-center gap-6 xl:flex">
+          {NAV_LINKS.filter((link) => FULL_LINKS.includes(link.href)).map(
+            (link) => (
+              <a
+                key={link.href}
+                href={link.href}
+                className="label-caps text-muted transition-colors duration-200 hover:text-ink"
+              >
+                {link.label}
+              </a>
+            )
+          )}
+        </nav>
+
+        <button
+          type="button"
+          onClick={openWaitlist}
+          className="inline-flex h-9 items-center gap-2 border border-hairline-strong bg-surface px-4 text-[0.8125rem] font-medium text-ink transition-colors duration-200 hover:border-accent/50 hover:text-accent lg:ml-6"
+        >
+          <Download className="h-3.5 w-3.5" aria-hidden="true" />
+          Download App
+        </button>
 
         <button
           type="button"

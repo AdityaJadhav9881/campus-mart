@@ -3,6 +3,8 @@ import Navigation from "./sections/Navigation.jsx";
 import Hero from "./sections/Hero.jsx";
 import Features from "./sections/Features.jsx";
 import PriceEstimator from "./sections/PriceEstimator.jsx";
+import LiveSandbox from "./sections/LiveSandbox.jsx";
+import ArchitectureDiagram from "./sections/ArchitectureDiagram.jsx";
 import AppPreview from "./sections/AppPreview.jsx";
 import About from "./sections/About.jsx";
 import Faq from "./sections/Faq.jsx";
@@ -30,6 +32,8 @@ export default function App() {
         <Hero onDownload={openWaitlist} />
         <Features />
         <PriceEstimator />
+        <LiveSandbox />
+        <ArchitectureDiagram />
         <AppPreview />
         <About />
         <Faq />
