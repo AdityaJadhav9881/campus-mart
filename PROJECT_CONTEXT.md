@@ -15,7 +15,8 @@ exchange academic materials.
 
 - Purely **frontend**. No backend, no database, no auth, no real API calls.
 - It is a **showcase / lead-gen page** that proves the product's value using
-  interactive demos (waitlist modal, live price estimator, phone mockup).
+  interactive demos (waitlist modal, live price estimator, phone mockup,
+  in-browser pipeline sandbox, interactive architecture diagram).
 - The actual product is described as a **Flutter mobile app**; this site is the
   web landing page for it.
 
@@ -116,7 +117,12 @@ Rules of use:
 - `.range-track` — custom styled `<input type="range">` (hairline track,
   cyan thumb with glow ring).
 - `.scan-sweep` / `.detect-in` — the YOLO camera scan line + detection
-  animation inside the phone mockup.
+  animation inside the phone mockup, also reused for the sandbox's
+  "verified" banner and the mobile architecture detail card.
+- `.pipeline-fill` — `scaleX` progress bar under the sandbox's running agent.
+- `.card-arrive` — feed card entrance when a sandbox listing is published.
+- `.arch-connector` / `.arch-node` — stroke/color transitions on the
+  architecture diagram edges and nodes (plus a `translateY(-1px)` node hover).
 - All animations are disabled under `prefers-reduced-motion: reduce`.
 
 ---
@@ -140,16 +146,23 @@ Rules of use:
 │   │   ├── Reveal.jsx         # generic IntersectionObserver scroll-reveal wrapper
 │   │   └── WaitlistModal.jsx  # accessible early-access modal dialog
 │   │
+│   ├── hooks/
+│   │   └── usePipeline.js     # 3-step agent pipeline timing for the sandbox
+│   │
 │   ├── data/
-│   │   └── features.js        # ALL content/data lives here (features, agent
-│   │                          #  pipeline, exchange flow, estimator model,
-│   │                          #  phone-preview data, FAQs)
+│   │   ├── features.js        # landing-page content (features, agent pipeline,
+│   │   │                      #  exchange flow, estimator model, phone-preview
+│   │   │                      #  data, FAQs)
+│   │   └── sandbox.js         # sandbox model (conditions, prohibited terms,
+│   │                          #  seed feed) + architecture node/edge graph
 │   │
 │   └── sections/
 │       ├── Navigation.jsx     # fixed nav, mobile menu, Download CTA -> modal
 │       ├── Hero.jsx           # hero + agent-mesh visual, Download CTA -> modal
 │       ├── Features.jsx       # 4 AI features, sticky-heading + hairline list
 │       ├── PriceEstimator.jsx # interactive live price calculator demo
+│       ├── LiveSandbox.jsx    # in-browser 3-agent listing pipeline sim
+│       ├── ArchitectureDiagram.jsx # clickable 4-layer system diagram
 │       ├── AppPreview.jsx     # pure-CSS phone frame + 3 tabbed screens
 │       ├── About.jsx          # "Bulletin boards, replaced." + exchange flow
 │       ├── Faq.jsx            # hairline accordion
@@ -157,12 +170,15 @@ Rules of use:
 │
 └── Aditya_Infinity_Design_Portfolio_Master_Prompt.txt   # design reference
 └── INFINITY_DESIGN_Universal_Design_Philosophy.txt      # design reference
+└── PROJECT_CONTEXT.md         # this file — keep in sync with the build
 ```
 
 ### Separation rule
-**Content/data lives in `src/data/features.js`; components only present it.**
-Keep it that way — do not hard-code copy inside section components when it can
-live in the data file.
+**Content/data lives in `src/data/`; components only present it.** Landing copy
+in `features.js`, sandbox + architecture data in `sandbox.js`. Keep it that way
+— do not hard-code copy inside section components when it can live in a data
+file. (Small local-only UI state, like the architecture diagram's coordinate
+slots, is fine inside the component.)
 
 ---
 
@@ -176,6 +192,8 @@ live in the data file.
   <Hero onDownload={openWaitlist} />
   <Features />
   <PriceEstimator />
+  <LiveSandbox />
+  <ArchitectureDiagram />
   <AppPreview />
   <About />
   <Faq />
@@ -185,8 +203,9 @@ live in the data file.
 ```
 
 Section anchor IDs (used by nav + scroll-padding):
-`#top`, `#features`, `#estimator`, `#preview`, `#project` (About),
-`#faq`, `#download` (Footer), `#main` (skip link target).
+`#top`, `#features`, `#estimator`, `#demo` (Live Sandbox),
+`#architecture`, `#preview`, `#project` (About), `#faq`, `#download` (Footer),
+`#main` (skip link target).
 
 `html` has `scroll-padding-top: 5.5rem` so anchored sections clear the fixed
 64px nav.
@@ -198,10 +217,17 @@ Section anchor IDs (used by nav + scroll-padding):
 ### Navigation.jsx
 - Fixed header, transparent at top, gains `bg-void/85 backdrop-blur-md` +
   hairline border once `window.scrollY > 12` (or when mobile menu open).
-- Desktop links (`Features / Estimate / App / FAQ`) show from `lg` up
-  (`hidden ... lg:flex`). Below `lg`, a hamburger toggles the mobile menu.
-- Mobile menu `NAV_LINKS` includes a `Download` entry flagged
-  `action: "waitlist"` — rendered as a `<button>` that opens the modal.
+- Desktop links are **tiered by breakpoint** — 6 links crowd a laptop bar, so:
+  - `lg`–`xl`: compact set via `COMPACT_LINKS` — `#demo`, `#architecture`,
+    `#faq` (`hidden ... lg:flex xl:hidden`).
+  - `xl` and up: full set via `FULL_LINKS` — `#features`, `#estimator`,
+    `#demo`, `#architecture`, `#preview`, `#faq`.
+  - Download App button sits outside the link `nav`s (the header row is
+    `justify-between`), with `lg:ml-6` for breathing room.
+  - Below `lg`, a hamburger toggles the mobile menu, which lists all
+    `NAV_LINKS`.
+- `NAV_LINKS` includes a `Download` entry flagged `action: "waitlist"` —
+  rendered as a `<button>` that opens the modal.
 - The mobile menu's focus target is a `closeRef` (the big Download button).
   Escape closes the menu.
 - Wordmark: "CAMPUSMART" + superscript cyan "AI".
@@ -246,6 +272,63 @@ Section anchor IDs (used by nav + scroll-padding):
 - Uses the custom `.range-track` input styling.
 - Section background `bg-surface/40` (deliberate: it sits between two
   `void`/`abyss` sections and needed its own tone).
+
+### LiveSandbox.jsx (`#demo`) + hooks/usePipeline.js
+In-browser simulation of the 3-agent listing pipeline. Section background
+`bg-abyss`. Everything runs locally — no image or text leaves the page.
+
+- **Dropzone**: drag-and-drop + click-to-browse + keyboard operable
+  (`role="button"`, Enter/Space). Shows an instant thumbnail via
+  `URL.createObjectURL`, with a hover "Remove" overlay. Auto-derives a title
+  from the filename when the title field is empty. Rejects non-image files
+  with an inline `role="alert"` message. Revokes object URLs on change/unmount.
+- **Inputs**: Item Title (min 2 chars to enable Run), Age in years (0–15),
+  3-way Condition selector (Like New / Good / Fair).
+- **Run AI Pipeline** → `usePipeline()` advances `step` 1→2→3→4 with
+  `STEP_DURATION = 900ms` + `STEP_GAP = 260ms`, then fires the completion
+  callback. Returns `{ step, running, done, run, reset }`; clears timers on
+  unmount and on re-run.
+- **Agent stepper** (vertical, icon + label + tech + detail):
+  1. *Listing Intelligence / YOLO* → `classifyItem()` regex classifies into
+     **Academic Material / Lab Equipment / Electronics**.
+  2. *Price Prediction / Scikit-learn* → `priceFor()` =
+     `round(base[category] × conditionMultiplier × ageFactor)` where
+     `ageFactor = max(0.55, 1 − age × 0.08)`; confidence =
+     `0.82 + mult×0.18 − age×0.01`, capped at 0.97.
+  3. *Trust & Fraud / Regex·NLP* → `scanProhibited()` scans the title against
+     `prohibitedTerms` and assigns **CLEARED** or **FLAGGED**.
+  Each running step shows a `.pipeline-fill` progress bar; done steps show a
+  check and their result string.
+- **Campus Feed**: on completion a card is **prepended** with `.card-arrive`;
+  it shows thumbnail (or a 4-letter seed tag), title, category · condition ·
+  age, AI price (`₹`, `toLocaleString("en-IN")`), clearance badge, verified
+  status, confidence %, and — when flagged — the matched terms plus a
+  "held for manual trust review" note.
+- Seeded with 3 listings (`seedFeedItems`) so the feed is never empty; one is
+  deliberately FLAGGED. A tip invites trying "cash only" or "scam".
+- `aria-live="polite"` region announces completion. Reset clears form + preview.
+
+### ArchitectureDiagram.jsx (`#architecture`)
+Clickable 4-layer system diagram, section background `bg-void`.
+
+- **Layout**: fixed SVG viewBox `1000×560`, node slots in a local `SLOTS`
+  map (`x`, `y`, `w`; height 62). Columns left→right: Frontend (Flutter,
+  React Admin) → Backend (FastAPI, Firebase Auth) → AI Orchestration
+  (LangGraph center, with YOLO / Scikit-learn / Regex·NLP above & below) →
+  PostgreSQL 15. Layer labels are positioned along the top.
+- **Edges**: built once from `architectureConnections` (deduped, symmetric
+  graph in `sandbox.js`) via `edgePath()`. Horizontal pairs use a cubic
+  bezier; same-column pairs (LangGraph ↔ agents) use a straight vertical line.
+- **Interaction**: clicking a node selects it (click again to clear). Outgoing
+  edges go **solid cyan** (`stroke-width` 2), incoming **soft cyan**, others
+  stay dim; connected nodes brighten, unrelated nodes dim via `arch-node`.
+  A side panel shows the selected node's layer, blurb, and connected names.
+  Suggested demo: select **LangGraph** to light all three agent pipelines +
+  the database write path.
+- Nodes are real `<button>`s with `aria-pressed`.
+- **Below `md`** the SVG is replaced by a stacked per-layer list (the fixed
+  viewBox doesn't reflow on phones) with the same selection behavior and a
+  `.detect-in` detail card. Legend explains inactive / related / selected.
 
 ### AppPreview.jsx
 - Pure CSS/Tailwind smartphone mockup: outer bezel, notch, fake status bar
@@ -375,8 +458,14 @@ tag to a real hosted image before going live for link previews.
 
 - **Repo:** https://github.com/AdityaJadhav9881/campus-mart.git (`origin`)
 - **Branch:** `main` (tracks `origin/main`)
-- **Last commit:** `0d60b9b` — "CampusMart AI landing site: hero, features,
-  estimator, app preview, FAQ, waitlist modal" (22 files, initial push)
+- **History:**
+  - `0d60b9b` — initial landing site (hero, features, estimator, app
+    preview, FAQ, waitlist modal) + Vercel config. 22 files.
+  - `489c8d8` — added LiveSandbox + ArchitectureDiagram, `data/sandbox.js`,
+    `hooks/usePipeline.js`, nav tiering, and this context file.
+- PowerShell prints a spurious `NativeCommandError` on `git push` because git
+  writes progress to stderr — check the final `main -> main` line to confirm
+  success.
 - Line endings: Windows/CRLF warnings from git are expected and harmless.
 - `.gitignore` excludes `node_modules`, `dist`, `*.local`, `.DS_Store`,
   editor dirs, and npm/yarn debug logs.
@@ -389,7 +478,9 @@ tag to a real hosted image before going live for link previews.
 2. **Infinity Design language** — void/abyss foundation, hairline borders,
    single cyan accent, precise spacing, restrained motion, generous negative
    space. No generic card grids, no gratuitous glow/neon.
-3. **Data out of components** — keep copy/config in `src/data/features.js`.
+3. **Data out of components** — keep copy/config in `src/data/`
+   (`features.js` for landing content, `sandbox.js` for sandbox + architecture
+   data).
 4. **Accessibility is mandatory** — ARIA on interactive widgets, visible
    focus (`:focus-visible` outline is global), keyboard operability,
    `prefers-reduced-motion` support.
@@ -413,14 +504,24 @@ tag to a real hosted image before going live for link previews.
 - [ ] Wire the waitlist form to a real endpoint; return a real queue number.
 - [ ] Replace the estimator's illustrative multipliers with real pricing
       data/service.
+- [ ] Replace the sandbox's local classifier/pricer/fraud-scan with real agent
+      endpoints (keep `usePipeline` for step timing).
 - [ ] Update the invite link (`https://campusmart.ai/invite/campus`) to a
       real referral URL.
 - [ ] Optional: add ESLint + a test setup (none configured today).
 - [ ] Optional: a real multi-page architecture if the product grows beyond a
       single landing page.
 
+**Maintenance rule:** this file is committed alongside the code. After any
+structural change (new section, new file, nav/anchor change, new data file,
+or a new commit), update the matching section here and bump the closing note
+below — it is the project's source of truth for future sessions.
+
 ---
 
-*Last updated: after the initial GitHub push (commit `0d60b9b`), covering the
-full landing site — Hero, Features, Price Estimator, App Preview, About, FAQ,
-Footer, and the Waitlist Modal — plus Vercel deployment config.*
+*Last updated: after commit `489c8d8` ("Add live marketplace sandbox and
+architecture explorer"). Covers the full landing site — Hero, Features, Price
+Estimator, Live Sandbox, Architecture Explorer, App Preview, About, FAQ,
+Footer, and the Waitlist Modal — plus nav tiering (compact at `lg`, full at
+`xl`), `data/sandbox.js`, `hooks/usePipeline.js`, and Vercel deployment
+config.*
