@@ -1,0 +1,202 @@
+@import "tailwindcss";
+
+@theme {
+  --color-void: #04060a;
+  --color-abyss: #070a10;
+  --color-surface: #0b0f16;
+  --color-hairline: #18202c;
+  --color-hairline-strong: #243044;
+  --color-ink: #eef3f9;
+  --color-muted: #93a0b1;
+  --color-faint: #74818f;
+  --color-accent: #22d3ee;
+  --color-accent-deep: #0e7490;
+
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI",
+    Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 5.5rem;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--color-void);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-feature-settings: "cv11", "ss01";
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  ::selection {
+    background: color-mix(in oklab, var(--color-accent) 30%, transparent);
+    color: var(--color-ink);
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 3px;
+  }
+}
+
+@utility label-caps {
+  font-size: 0.6875rem;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+/* ---- Range input — hairline track, accent thumb ---- */
+
+.range-track {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  height: 2rem;
+  background: transparent;
+  cursor: pointer;
+}
+
+.range-track::-webkit-slider-runnable-track {
+  height: 1px;
+  background: var(--color-hairline-strong);
+}
+
+.range-track::-moz-range-track {
+  height: 1px;
+  background: var(--color-hairline-strong);
+}
+
+.range-track::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  margin-top: -7px;
+  height: 15px;
+  width: 15px;
+  border-radius: 9999px;
+  background: var(--color-accent);
+  box-shadow: 0 0 0 4px rgba(34, 211, 238, 0.14);
+  transition: box-shadow 160ms ease;
+}
+
+.range-track::-moz-range-thumb {
+  height: 15px;
+  width: 15px;
+  border: none;
+  border-radius: 9999px;
+  background: var(--color-accent);
+  box-shadow: 0 0 0 4px rgba(34, 211, 238, 0.14);
+  transition: box-shadow 160ms ease;
+}
+
+.range-track:hover::-webkit-slider-thumb,
+.range-track:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 6px rgba(34, 211, 238, 0.2);
+}
+
+.range-track:hover::-moz-range-thumb,
+.range-track:focus-visible::-moz-range-thumb {
+  box-shadow: 0 0 0 6px rgba(34, 211, 238, 0.2);
+}
+
+/* ---- Entry motion (hero) — quiet emergence, never delays usability ---- */
+
+@keyframes hero-rise {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.hero-in {
+  animation: hero-rise 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* ---- Scroll reveal — subtle emergence of connected content ---- */
+
+.reveal {
+  opacity: 0;
+  transform: translateY(16px);
+  transition:
+    opacity 600ms cubic-bezier(0.22, 1, 0.36, 1),
+    transform 600ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.reveal[data-visible="true"] {
+  opacity: 1;
+  transform: none;
+}
+
+/* ---- Agent status pulse — slow, restrained ---- */
+
+@keyframes agent-pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.agent-dot {
+  animation: agent-pulse 3.2s ease-in-out infinite;
+}
+
+/* ---- Vision scan sweep + detection lock (phone preview) ---- */
+
+@keyframes scan-sweep {
+  0% {
+    transform: translateY(-4%);
+  }
+  50% {
+    transform: translateY(96%);
+  }
+  100% {
+    transform: translateY(-4%);
+  }
+}
+
+.scan-sweep {
+  animation: scan-sweep 3.6s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+@keyframes detect-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.detect-in {
+  animation: detect-in 420ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .reveal {
+    opacity: 1;
+    transform: none;
+  }
+}

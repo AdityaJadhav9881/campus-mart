@@ -1,0 +1,886 @@
+ADITYA JADHAV — INFINITY DESIGN PORTFOLIO
+MASTER BUILD PROMPT
+
+Build a premium, next-generation personal engineering portfolio based on the
+INFINITY DESIGN philosophy.
+
+TARGET:
+If the perfect final website is 100/100, the FIRST IMPLEMENTATION must aim
+for AT LEAST 90/100.
+
+Do NOT create a rough prototype, generic portfolio template, basic student
+portfolio, or simple hero + cards + footer website.
+
+INFINITY IS NOT A SPACE THEME.
+Do not use galaxies, stars, planets, random particles, excessive neon,
+excessive glow, or forced glassmorphism.
+
+INFINITY IS THE EXPERIENCE:
+OPEN • CONNECTED • DEEP • CONTINUOUS • EXPANDABLE • PRECISE • PREMIUM
+FUTURISTIC • INTELLIGENT • LIMITLESS
+
+The visitor should feel:
+"There is always something more to explore."
+
+============================================================
+1. CORE IDENTITY
+============================================================
+
+ADITYA RAMESH JADHAV
+
+Engineer
+Builder
+Explorer
+
+The portfolio should communicate:
+- I build things.
+- I experiment.
+- I learn by building.
+- I connect hardware, software, systems and ideas.
+- My work is continuously evolving.
+
+This should feel like an evolving system, not a static resume.
+
+============================================================
+2. VISUAL DIRECTION
+============================================================
+
+Create a highly polished visual system with:
+- Deep visual hierarchy
+- Precise spacing
+- Strong typography
+- Sophisticated dark foundation
+- Controlled cyan/blue accents
+- Soft light
+- Layered depth
+- Subtle meaningful motion
+- Large negative space
+- Connected content
+- Premium interactions
+- Minimal visual noise
+
+Do NOT copy the previous Infinity Power Guard application.
+Create a new portfolio identity using the same underlying philosophy.
+
+============================================================
+3. FIRST IMPRESSION / HERO
+============================================================
+
+The first 5 seconds are critical.
+
+Immediately communicate:
+WHO I AM
+WHAT I DO
+WHAT I BUILD
+WHERE TO EXPLORE
+
+Create an exceptional Hero with:
+- Large typography
+- Precise spacing
+- Strong alignment
+- Subtle depth
+- Controlled ambient lighting
+- Elegant motion
+- Clear CTA
+- Minimal supporting content
+
+Conceptual content:
+ADITYA RAMESH JADHAV
+ENGINEER • BUILDER • EXPLORER
+Building ideas without boundaries.
+
+Do not copy this exact layout; create a sophisticated composition.
+
+On entry:
+quiet initial state
+→ subtle emergence
+→ identity appears
+→ supporting elements reveal
+→ interface becomes interactive
+
+No loading screen, spinner, or fake progress bar.
+Animations must never delay usability.
+
+============================================================
+4. COLOR / TYPE / SPACING
+============================================================
+
+Foundation:
+Deep black
+Deep navy
+Dark neutral surfaces
+
+Text:
+Near-white primary
+Muted gray secondary
+
+Accents:
+Cyan
+Controlled blue
+
+Green = semantic success/healthy state only.
+Red = actual critical/error state only.
+
+Do not use green everywhere.
+
+Use a premium modern sans-serif.
+Avoid unreadable futuristic fonts.
+
+Spacing:
+4px / 8px base system.
+
+Preferred:
+8, 12, 16, 24, 32, 48, 64, 96
+
+Check symmetry, margins, baseline alignment, section spacing,
+text-to-button spacing, image-to-text spacing and navigation spacing.
+
+Use generous negative space.
+
+============================================================
+5. NAVIGATION
+============================================================
+
+Do NOT create a generic:
+Home | About | Skills | Projects | Contact
+
+Use a refined navigation system such as:
+ADITYA
+ABOUT
+PROJECTS
+JOURNEY
+RESEARCH
+CONTACT
+
+Desktop:
+minimal floating/refined navigation.
+
+Mobile:
+purpose-built mobile navigation.
+
+Navigation must remain understandable and accessible.
+
+============================================================
+6. REAL WEBSITE ARCHITECTURE
+============================================================
+
+Create a scalable multi-page architecture.
+
+Routes:
+/ 
+/about
+/projects
+/projects/:projectId
+/skills
+/skills/:skillId
+/journey
+/research
+/research/:researchId
+/achievements
+/contact
+
+Every important entity gets its own real, shareable URL.
+
+Do not put everything into one enormous page.
+
+============================================================
+7. HOMEPAGE FLOW
+============================================================
+
+Use approximately:
+
+HERO
+↓
+IDENTITY
+↓
+SELECTED PROJECTS
+↓
+ENGINEERING PHILOSOPHY
+↓
+SKILLS / CAPABILITIES
+↓
+JOURNEY
+↓
+RESEARCH / ACHIEVEMENTS
+↓
+FUTURE
+↓
+CONTACT
+↓
+CONTINUATION
+
+Do NOT make every section a separate rectangular block.
+The homepage should feel like ONE CONTINUOUS EXPERIENCE.
+
+============================================================
+8. PROJECT EXPERIENCE
+============================================================
+
+Projects are one of the most important parts.
+
+Do NOT use a boring repeated card grid.
+
+Create a distinctive project exploration system using:
+- Connected relationships
+- Strong project compositions
+- Balanced asymmetry where appropriate
+- Depth
+- Progressive reveal
+- Meaningful interaction
+
+Each project should feel like a distinct object in the portfolio.
+
+Hover/select:
+- Subtle scale
+- Light response
+- Connection response
+- Typography transition
+- Image reveal
+- Depth shift
+
+Keep it controlled and premium.
+
+============================================================
+9. PROJECT DATA
+============================================================
+
+Use only verified information.
+
+Known examples may include:
+- Infinity Power Guard
+- DIY LiFePO4 Home Backup Power System
+- Variable Power Supply
+- Audio / Speaker / Subwoofer System
+- Auto Washroom Lights
+
+Do NOT invent:
+projects
+technologies
+awards
+companies
+internships
+experience
+statistics
+
+If information is missing, leave it out.
+
+One-line descriptions must be concrete and concise.
+
+Example:
+INFINITY POWER GUARD
+"IoT-enabled portable energy management and backup system."
+
+DIY LIIFEPO4 HOME BACKUP
+"A custom battery-backed power system designed and built from scratch."
+
+VARIABLE POWER SUPPLY
+"A transformer-based adjustable power supply built for electronics
+experimentation."
+
+============================================================
+10. PROJECT DETAIL PAGES
+============================================================
+
+Example:
+/projects/infinity-power-guard
+
+Create a deep, immersive but readable project page containing:
+
+Project name
+One-line description
+Year
+Category
+Technologies
+Project visual
+Why I built it
+The problem
+What I designed
+How it works
+Key features
+Engineering
+Result
+What I learned
+Images / video
+Links
+Related projects
+Related skills
+
+Project pages must feel like entering a deeper layer, not reading a
+plain document.
+
+============================================================
+11. CONNECTED PORTFOLIO
+============================================================
+
+Projects should connect naturally to:
+- Related skills
+- Related projects
+- Research
+- Technologies
+- Journey milestones
+
+Example:
+
+Infinity Power Guard
+→ Embedded Systems
+→ IoT
+→ React
+→ Research
+→ Related Project
+
+The portfolio should behave like an interconnected knowledge system.
+
+============================================================
+12. SKILLS
+============================================================
+
+Do NOT create a giant technology list.
+
+Communicate capability through meaningful groups.
+
+Possible:
+ELECTRONICS
+Embedded systems
+Circuit design
+Sensors
+Power electronics
+
+SOFTWARE
+C
+Python
+JavaScript
+React
+Android
+
+SYSTEMS
+IoT
+Firebase
+Hardware-software integration
+Automation
+
+DESIGN
+UI/UX
+System visualization
+Product thinking
+
+Only include genuinely supported skills.
+
+Skills should connect back to real projects.
+
+============================================================
+13. ABOUT
+============================================================
+
+Do not use a generic "Hi, I am Aditya" paragraph.
+
+Create a strong personal identity section.
+
+Core direction:
+"I build things to understand how they work."
+
+From electronics experiments to complete hardware-software systems,
+the work is driven by curiosity.
+
+Use only verified facts and keep the writing authentic.
+
+============================================================
+14. ENGINEERING PHILOSOPHY
+============================================================
+
+Create a visual continuous cycle:
+
+BUILD
+↓
+LEARN
+↓
+EXPERIMENT
+↓
+IMPROVE
+↓
+BUILD AGAIN
+
+This is a core expression of Infinity Design.
+
+============================================================
+15. JOURNEY
+============================================================
+
+Create an engineering journey, not a boring resume timeline.
+
+Use verified milestones.
+
+Concept:
+2021 → early experiments
+2023 → LiFePO4 backup
+2025 → audio/electronics
+2026 → Infinity Power Guard
+Future → visually open
+
+Do not invent dates or milestones.
+
+============================================================
+16. RESEARCH
+============================================================
+
+Create a research layer.
+
+Example:
+INFINITY POWER GUARD:
+An IoT-Based Portable Energy Management System
+
+Show verified publication information and project relationship.
+Do not invent details.
+
+============================================================
+17. ACHIEVEMENTS
+============================================================
+
+Show genuine achievements as milestones rather than a trophy wall.
+
+Use only verified achievements.
+
+============================================================
+18. FUTURE
+============================================================
+
+Do not make a generic "Future Goals" section.
+
+Use a concept such as:
+BEYOND
+NEXT
+BEYOND THE HORIZON
+THE NEXT BUILD
+
+Communicate that the portfolio is continuously evolving.
+
+============================================================
+19. CONTACT
+============================================================
+
+Do not end with "Thanks for visiting."
+
+Use:
+LET'S BUILD SOMETHING.
+
+Then provide:
+Email
+LinkedIn
+GitHub
+
+Keep it minimal and premium.
+
+============================================================
+20. RESPONSIVE DESIGN
+============================================================
+
+Do not compress desktop into mobile.
+
+Design intentionally for:
+Mobile
+Tablet
+Laptop
+Desktop
+Large displays
+
+Mobile priorities:
+- Thumb reach
+- Readable text
+- Large touch targets
+- Clear hierarchy
+- Short interaction paths
+
+============================================================
+21. PERFORMANCE
+============================================================
+
+High-end visual quality must remain fast.
+
+Target 60 FPS for animated areas.
+
+Avoid unnecessary:
+- Heavy WebGL
+- Huge images
+- Excessive particles
+- Constant rendering
+- Huge dependencies
+- Unnecessary 3D
+
+Use animation only when it adds value.
+
+============================================================
+22. ACCESSIBILITY
+============================================================
+
+Support:
+- Readable contrast
+- Keyboard navigation
+- Focus states
+- Screen readers
+- Reduced motion
+- Meaningful labels
+- Accessible buttons
+
+Futuristic must not mean inaccessible.
+
+============================================================
+23. ARCHITECTURE
+============================================================
+
+Use a scalable structure such as:
+
+src/
+  app/
+  pages/
+  components/
+  sections/
+  data/
+  hooks/
+  animations/
+  styles/
+  assets/
+
+Separate:
+UI
+from
+business/data logic.
+
+Use reusable components.
+Keep project data separate from presentation.
+
+============================================================
+24. SEO / DEEP LINKS
+============================================================
+
+Every major page needs:
+- Unique title
+- Description
+- Open Graph metadata
+- Proper headings
+- Semantic HTML
+
+Important entities need meaningful URLs.
+
+Example:
+/projects/infinity-power-guard
+
+Not:
+/#project1
+
+============================================================
+25. IMAGE HANDLING
+============================================================
+
+Do not use random stock images.
+
+Use real project visuals when available.
+
+Images must:
+- Load efficiently
+- Preserve aspect ratio
+- Have meaningful alt text
+- Not cause layout shifts
+- Use responsive image techniques
+
+============================================================
+26. MOTION
+============================================================
+
+Animation should communicate:
+- Where something came from
+- Where it went
+- What changed
+- What is important
+
+Do not animate for decoration alone.
+
+Typical timing:
+Fast: 100–180ms
+Normal: 200–350ms
+Emphasis: 400–700ms
+Major transition: 500–1000ms
+
+Never make the user wait for animation.
+
+============================================================
+27. QUALITY RULE
+============================================================
+
+Before accepting a section, check:
+
+SYMMETRY
+SPACING
+TYPOGRAPHY
+ALIGNMENT
+CONTRAST
+MOTION
+RESPONSIVENESS
+HIERARCHY
+ACCESSIBILITY
+
+If something looks "almost right":
+DO NOT ACCEPT IT.
+Fix it.
+
+============================================================
+28. NO GENERIC UI
+============================================================
+
+Avoid:
+- Generic rounded cards
+- Generic gradients
+- Generic neon
+- Generic glassmorphism
+- Generic portfolio templates
+- Generic stock illustrations
+- Generic AI-generated decorations
+
+Every major visual element must have a reason.
+
+============================================================
+29. NO EXCESSIVE EFFECTS
+============================================================
+
+Do not use:
+- Too many animations
+- Glow on every component
+- Particles behind every section
+- 3D merely because it is possible
+
+Premium design comes from restraint.
+
+============================================================
+30. 10-SECOND TEST
+============================================================
+
+A new visitor should understand within approximately 10 seconds:
+
+WHO IS ADITYA?
+WHAT DOES HE BUILD?
+WHERE ARE THE PROJECTS?
+HOW CAN I EXPLORE?
+
+If this fails:
+REDESIGN.
+
+============================================================
+31. BORING TEST
+============================================================
+
+Disable animation, glow and background effects.
+
+If the website becomes ugly or confusing:
+THE STRUCTURE IS WRONG.
+
+Fix hierarchy before adding effects.
+
+============================================================
+32. FUTURISTIC TEST
+============================================================
+
+Ask:
+
+"Does this feel futuristic because of the quality of interaction,
+or only because it is dark, glowing and animated?"
+
+The correct answer must be:
+QUALITY OF INTERACTION.
+
+============================================================
+33. INFINITY TEST
+============================================================
+
+Ask:
+
+Does the user feel there is more to explore?
+
+Can projects lead to skills?
+Can skills lead to projects?
+Can research lead to projects?
+Can the journey lead to future work?
+
+If yes, Infinity Design is working.
+
+============================================================
+34. FIRST BUILD REQUIREMENT
+============================================================
+
+Do NOT first create a low-quality skeleton and say:
+"Design will be added later."
+
+The FIRST BUILD should already contain:
+
+✓ Complete visual identity
+✓ High-quality Hero
+✓ Real navigation
+✓ Major homepage structure
+✓ Distinctive project exploration
+✓ Project interactions
+✓ Typography system
+✓ Color system
+✓ Responsive foundation
+✓ Major transitions
+✓ Precise spacing
+✓ Individual routes
+✓ Real project content where available
+✓ Premium visual polish
+
+The first implementation should feel approximately:
+90/100
+
+NOT:
+40/100.
+
+============================================================
+35. IMPLEMENTATION STRATEGY
+============================================================
+
+Build a strong reusable system.
+
+Recommended order:
+
+DESIGN TOKENS
+↓
+LAYOUT SYSTEM
+↓
+TYPOGRAPHY
+↓
+NAVIGATION
+↓
+HERO
+↓
+PROJECT SYSTEM
+↓
+PAGE SYSTEM
+↓
+MOTION
+↓
+RESPONSIVE
+↓
+POLISH
+
+Do not generate thousands of random lines of code.
+
+============================================================
+36. DO NOT STOP AT "IT WORKS"
+============================================================
+
+A running website is NOT finished.
+
+Evaluate:
+
+Does it look premium?
+Does it feel original?
+Is spacing precise?
+Is typography balanced?
+Are animations smooth?
+Are transitions meaningful?
+Does mobile look intentionally designed?
+Does every important link work?
+Does every route work?
+Does every project have a clear identity?
+Does the website feel connected?
+Does it feel like Aditya's portfolio?
+
+============================================================
+37. FINAL AUDIT
+============================================================
+
+Before reporting completion, audit:
+
+FUNCTIONALITY
+- All routes
+- Navigation
+- Buttons
+- Links
+- Project pages
+- Mobile navigation
+
+VISUAL
+- Alignment
+- Symmetry
+- Spacing
+- Typography
+- Colors
+- Images
+- Responsive layouts
+
+UX
+- Discoverability
+- Interaction feedback
+- Navigation clarity
+- No dead ends
+- Error states
+
+TECHNICAL
+- Build
+- Console errors
+- Performance
+- Accessibility
+- SEO
+
+Fix problems before declaring the first version complete.
+
+============================================================
+38. CRITICAL INSTRUCTION
+============================================================
+
+Do NOT ask me to describe every small visual detail.
+
+You are responsible for professional design decisions.
+
+Use the Infinity Design philosophy.
+
+When ambiguous, choose the option that is:
+- More elegant
+- More usable
+- More scalable
+- More restrained
+- More connected
+- More premium
+
+============================================================
+39. FINAL GOAL
+============================================================
+
+Build:
+
+ADITYA RAMESH JADHAV
+INFINITY DESIGN PORTFOLIO
+
+It should feel like:
+- A premium digital product
+- A personal engineering universe
+- A living collection of projects
+- A place to discover how I think and build
+
+Not:
+- A resume
+- A template
+- A collection of cards
+- A visual gimmick
+
+It is a continuously evolving digital identity.
+
+============================================================
+FINAL FEELING
+
+ENTER
+↓
+UNDERSTAND
+↓
+EXPLORE
+↓
+DISCOVER
+↓
+GO DEEPER
+↓
+CONNECT
+↓
+CONTINUE
+↓
+∞
+
+DO NOT BUILD A WEBSITE THAT LOOKS INFINITE.
+
+BUILD A WEBSITE THAT FEELS INFINITE.
+============================================================
