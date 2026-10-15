@@ -135,19 +135,35 @@ Rules of use:
 ├── package.json               # scripts + deps
 ├── vite.config.js             # react() + tailwindcss() plugins
 ├── vercel.json                # SPA rewrite + caching/security headers
-├── .gitignore                 # ignores node_modules, dist, editor junk
+├── .env.example               # documents VITE_API_BASE_URL + VITE_APK_DOWNLOAD_URL
+├── .gitignore                 # ignores node_modules, dist, .env*, editor junk
+│
+├── public/
+│   └── campusmart-ai.apk      # (drop the signed release here; served at site root)
 │
 ├── src/
 │   ├── main.jsx               # createRoot mount, imports ./index.css
 │   ├── index.css              # Tailwind v4 @theme tokens + base + utilities
 │   ├── App.jsx                # composes sections; OWNS waitlist modal state
 │   │
+│   ├── api/
+│   │   └── client.js          # FastAPI client: checkApiHealth (GET /),
+│   │                          #  fetchLiveProducts (GET /products/), env-driven base URL
+│   │
+│   ├── lib/
+│   │   └── qrcode.js          # dependency-free QR generator (byte mode, EC level M,
+│   │                          #  versions 1–10) returning a boolean module matrix
+│   │
 │   ├── components/
 │   │   ├── Reveal.jsx         # generic IntersectionObserver scroll-reveal wrapper
-│   │   └── WaitlistModal.jsx  # accessible early-access modal dialog
+│   │   ├── ApiStatusBadge.jsx # ● Connected / ○ Offline badge + Refresh button
+│   │   ├── QrCode.jsx         # pure-SVG QR renderer (light bg, void modules)
+│   │   └── WaitlistModal.jsx  # dual-tab Get CampusMart AI modal (APK + iOS waitlist)
 │   │
 │   ├── hooks/
-│   │   └── usePipeline.js     # 3-step agent pipeline timing for the sandbox
+│   │   ├── usePipeline.js     # 3-step agent pipeline timing for the sandbox
+│   │   └── useLiveFeed.js     # shared live-feed sync (health check + /products/,
+│   │                          #  in-flight dedupe + cache) + mapProductToFeedItem
 │   │
 │   ├── data/
 │   │   ├── features.js        # landing-page content (features, agent pipeline,
@@ -161,9 +177,9 @@ Rules of use:
 │       ├── Hero.jsx           # hero + agent-mesh visual, Download CTA -> modal
 │       ├── Features.jsx       # 4 AI features, sticky-heading + hairline list
 │       ├── PriceEstimator.jsx # interactive live price calculator demo
-│       ├── LiveSandbox.jsx    # in-browser 3-agent listing pipeline sim
+│       ├── LiveSandbox.jsx    # in-browser 3-agent pipeline sim + LIVE campus feed
 │       ├── ArchitectureDiagram.jsx # clickable 4-layer system diagram
-│       ├── AppPreview.jsx     # pure-CSS phone frame + 3 tabbed screens
+│       ├── AppPreview.jsx     # pure-CSS phone frame + 3 tabbed screens (feed syncs live)
 │       ├── About.jsx          # "Bulletin boards, replaced." + exchange flow
 │       ├── Faq.jsx            # hairline accordion
 │       └── Footer.jsx         # credits + Download CTA -> modal
@@ -275,7 +291,9 @@ Section anchor IDs (used by nav + scroll-padding):
 
 ### LiveSandbox.jsx (`#demo`) + hooks/usePipeline.js
 In-browser simulation of the 3-agent listing pipeline. Section background
-`bg-abyss`. Everything runs locally — no image or text leaves the page.
+`bg-abyss`. The pipeline demo itself runs locally — no image or text leaves
+the page — but the **Campus Feed below it now syncs with the live FastAPI +
+PostgreSQL backend** (`useLiveFeed`):
 
 - **Dropzone**: drag-and-drop + click-to-browse + keyboard operable
   (`role="button"`, Enter/Space). Shows an instant thumbnail via
@@ -304,9 +322,18 @@ In-browser simulation of the 3-agent listing pipeline. Section background
   age, AI price (`₹`, `toLocaleString("en-IN")`), clearance badge, verified
   status, confidence %, and — when flagged — the matched terms plus a
   "held for manual trust review" note.
-- Seeded with 3 listings (`seedFeedItems`) so the feed is never empty; one is
-  deliberately FLAGGED. A tip invites trying "cash only" or "scam".
+- Seeded with 3 listings (`seedFeedItems`) so the feed is never empty offline;
+  one is deliberately FLAGGED. A tip invites trying "cash only" or "scam".
 - `aria-live="polite"` region announces completion. Reset clears form + preview.
+- **Live sync**: on mount `useLiveFeed()` runs `checkApiHealth()` (GET `/`) then
+  `fetchLiveProducts()` (GET `/products/`) against `VITE_API_BASE_URL`. Live
+  products are mapped via `mapProductToFeedItem` (source `live`, cyan LIVE chip,
+  image from `image_url`, price from `suggested_price ?? listed_price`, trust
+  from `seller_trust_score / 100`) and **prepended above** sandbox-published
+  items. Seeds show only when the API is offline/empty. A **Refresh** button in
+  the `ApiStatusBadge` re-fetches on demand. Both sections share one in-flight
+  promise + cache (module-level in `useLiveFeed.js`), so only one network round
+  trip happens per sync.
 
 ### ArchitectureDiagram.jsx (`#architecture`)
 Clickable 4-layer system diagram, section background `bg-void`.
@@ -335,8 +362,10 @@ Clickable 4-layer system diagram, section background `bg-void`.
   ("9:41" + dots), header with VERIFIED badge, fixed `h-[440px]` screen,
   home indicator.
 - 3 tabs (`role="tablist"`, full ARIA + arrow-key navigation):
-  1. **Smart Feed** — 3 listing rows with title, price, category tag, and a
-     cyan trust-score bar + `BadgeCheck`.
+  1. **Smart Feed** — listing rows with title, price, category tag, and a
+     cyan trust-score bar + `BadgeCheck`. Uses **live backend products when
+     online** (top 4, mapped to phone shape via `mapProductToPhoneItem`),
+     falling back to static `feedListings` offline.
   2. **AI Listing Camera** — viewfinder grid, silhouette, YOLO-style
      bounding box with corner brackets, confidence label
      ("DRAFTER KIT · 0.94"), animated `.scan-sweep` line, and an
@@ -381,48 +410,63 @@ Clickable 4-layer system diagram, section background `bg-void`.
 
 ---
 
-## 7. WaitlistModal.jsx (the main interactive piece)
+## 7. WaitlistModal.jsx → "Get CampusMart AI" modal
 
 Opened by every "Download App" CTA (Hero, desktop nav, mobile nav, Footer).
 State lives in `App.jsx` (`waitlistOpen`), passed as
-`open` / `onClose` props.
+`open` / `onClose` props. Now a **dual-tab** dialog.
 
-### Behavior
-- Controlled modal; returns `null` when `open` is false.
-- **Accessibility**: `role="dialog"`, `aria-modal="true"`,
-  `aria-labelledby` (via `useId()`), focus moved into the modal on open
-  (name field, or the panel when in success state), **focus restored to the
-  triggering element on close**, **Tab/Shift+Tab focus trap**, **Escape to
-  dismiss**, **backdrop click to close**, body scroll locked while open,
-  visually-hidden backdrop is a labeled `<button>` for a11y.
-- **Inputs**: Student Name, Campus/College, College Email. All use
-  `label-caps` labels, `autocomplete`, and inline error messages tied via
-  `aria-describedby` / `aria-invalid`.
-- **Validation** (client-side, `noValidate` form + custom `validate()`):
-  name and college required; email must match a basic regex.
-- **Email classification** (`classifyEmail`): compares the domain against a
-  `CONSUMER_DOMAINS` blocklist (gmail, yahoo, hotmail, outlook, live, icloud,
-  aol, proton, mail.com, zoho, yandex, rediffmail, googlemail, yahoo.co.in).
-  - consumer domain → amber border + amber hint: *"Consumer email detected —
-    a campus/institutional email gets priority verification."*
-  - other/institutional domain → cyan border + cyan hint: *"Campus email
-    detected — priority verification."*
-- **Success state** replaces the form with a confirmation card:
-  - "You're **#N** on your campus waitlist" where
-    `queueNumber = 42 + Math.floor(Math.random() * 18)` → range **42–59**.
-  - Shows the campus name entered and the email it will notify.
-  - **Copy Invite Link** button copies a hard-coded
-    `https://campusmart.ai/invite/campus` via `navigator.clipboard.writeText`,
-    swaps to "Invite link copied" with a check icon, reverts after 2s.
-  - "Back to site" button closes the modal.
-- Transient state (values, errors, submitted, copied) resets every time the
-  modal reopens.
-- Copy explicitly states the waitlist is **simulated** and submissions are
-  **not stored or sent** — there is no backend.
+### Tab 1 — Android APK (default)
+- Primary `<a download>` CTA: **"Download Android APK (v1.0.0 Release)"** →
+  `import.meta.env.VITE_APK_DOWNLOAD_URL || "/campusmart-ai.apk"`.
+- **Inline pure-SVG QR code** (`src/lib/qrcode.js` + `components/QrCode.jsx`,
+  no dependencies) encoding the resolved **absolute** APK URL (origin + path
+  when site-root-relative). Light background, void modules — scannable with
+  any phone camera. Generator: byte mode, EC level M, versions 1–10, full
+  mask-penalty selection; verified by round-trip decode + RS checks.
+- 3-step install strip (01 Download → 02 Allow browser install permission →
+  03 Sign in with campus email) as a hairline `<ol>`.
+- Metadata badges: **Flutter 3.x**, **Android 5.0+ (API 21+)**,
+  **Verified by Infinity Crew** (the last with a cyan `ShieldCheck`).
+- On open, focus lands on the download link.
 
-### To make it real later
+### Tab 2 — iOS & Campus Rollout Waitlist
+- The original student waitlist form (unchanged validation, email
+  classification, success state with queue number + Copy Invite Link).
+
+### Shared modal behavior (both tabs)
+- **Accessibility**: `role="dialog"`, `aria-modal`, `aria-labelledby`,
+  tablist/tab/tabpanel ARIA with arrow-key navigation, focus trap, Escape,
+  backdrop click, body scroll lock, focus restore to trigger on close.
+- Transient state (tab, values, errors, submitted, copied) resets on reopen.
+- Waitlist copy still states it is **simulated** — no backend for it yet.
+
+### To make the waitlist real later
 Replace the `handleSubmit` body with an API POST and set `queueNumber` from
-the server response. Everything else (UI/a11y) can stay.
+the server response. Everything else (UI/a11y) can stay. APK hosting: drop
+the signed build at `public/campusmart-ai.apk` (or point
+`VITE_APK_DOWNLOAD_URL` at a CDN).
+
+---
+
+## 7b. Live API client (`src/api/client.js`) + `hooks/useLiveFeed.js`
+
+- Base URL: `import.meta.env.VITE_API_BASE_URL || "http://127.0.0.1:8000"`.
+  In **production without the env var**, network calls are skipped entirely
+  (`NETWORK_ENABLED` = explicit URL or `import.meta.env.DEV`) so the site
+  shows Offline Demo Mode without failed localhost requests.
+- `checkApiHealth()` → GET `/`, returns boolean. `fetchLiveProducts()` →
+  GET `/products/`, accepts a bare array or `{products|items|results: []}`,
+  maps each row to
+  `{ id, title, description, category, condition, image_url, listed_price,
+  suggested_price, seller_trust_score, created_at }`.
+  8s `AbortSignal.timeout` guard.
+- `useLiveFeed()` hook: health → products, module-level in-flight dedupe +
+  last-good cache (shared by LiveSandbox + AppPreview), exposes
+  `{ products, feedItems, online, loading, refresh, apiUrl }`.
+- `ApiStatusBadge`: cyan ● "Connected to Live FastAPI Server" (with
+  `.agent-dot` pulse) or faint ○ "Offline Demo Mode", plus Refresh button.
+- **Backend requirement**: FastAPI must allow the site origin via CORS.
 
 ---
 
@@ -437,6 +481,17 @@ the server response. Everything else (UI/a11y) can stay.
     `X-Frame-Options: DENY`,
     `Referrer-Policy: strict-origin-when-cross-origin`
 - Vercel auto-detects Vite: build `npm run build`, output `dist`.
+
+### Environment variables (see `.env.example`)
+| Var | Purpose | Local default | Production |
+|-----|---------|---------------|------------|
+| `VITE_API_BASE_URL` | FastAPI base URL (no trailing slash) | `http://127.0.0.1:8000` (DEV only) | `https://campusmart-api.onrender.com` — set in Vercel |
+| `VITE_APK_DOWNLOAD_URL` | APK download target for the modal + QR | `/campusmart-ai.apk` | same, or absolute CDN URL |
+
+Unset `VITE_API_BASE_URL` in production → Offline Demo Mode (seed listings,
+no network attempts). `.env` / `.env.*` are gitignored; `.env.example` is
+tracked. Drop the signed APK at `public/campusmart-ai.apk` so the default
+site-root URL resolves.
 
 ### Meta / SEO (in `index.html`)
 - `<title>CampusMart AI — Secure Student Marketplace</title>`
@@ -498,9 +553,12 @@ tag to a real hosted image before going live for link previews.
 ## 11. Known TODOs / next steps
 
 - [ ] Add a real 1200×630 OG image (`og-cover.png`) or fix OG image URLs.
-- [ ] Point the hero/footer "Download App" CTAs at real App Store / Play
-      Store links once the Flutter app ships (currently they open the
-      waitlist modal).
+- [x] APK download hub: dual-tab modal with direct APK link, generated QR
+      code, install steps — needs `public/campusmart-ai.apk` dropped in and
+      `VITE_APK_DOWNLOAD_URL` + `VITE_API_BASE_URL` set in Vercel.
+- [x] Live backend sync: `src/api/client.js` + `useLiveFeed` wired into
+      LiveSandbox + AppPreview (needs CORS + deployed FastAPI with
+      `GET /` and `GET /products/`).
 - [ ] Wire the waitlist form to a real endpoint; return a real queue number.
 - [ ] Replace the estimator's illustrative multipliers with real pricing
       data/service.
@@ -508,7 +566,8 @@ tag to a real hosted image before going live for link previews.
       endpoints (keep `usePipeline` for step timing).
 - [ ] Update the invite link (`https://campusmart.ai/invite/campus`) to a
       real referral URL.
-- [ ] Optional: add ESLint + a test setup (none configured today).
+- [ ] Optional: add ESLint + a test setup (none configured today; QR lib was
+      verified via one-off Node round-trip scripts).
 - [ ] Optional: a real multi-page architecture if the product grows beyond a
       single landing page.
 
@@ -519,9 +578,13 @@ below — it is the project's source of truth for future sessions.
 
 ---
 
-*Last updated: after commit `489c8d8` ("Add live marketplace sandbox and
-architecture explorer"). Covers the full landing site — Hero, Features, Price
-Estimator, Live Sandbox, Architecture Explorer, App Preview, About, FAQ,
-Footer, and the Waitlist Modal — plus nav tiering (compact at `lg`, full at
-`xl`), `data/sandbox.js`, `hooks/usePipeline.js`, and Vercel deployment
-config.*
+*Last updated: production-integration pass — added `src/api/client.js`
+(FastAPI health + `/products/` client), `src/hooks/useLiveFeed.js` (shared
+live-feed sync with cache/dedupe), `src/components/ApiStatusBadge.jsx`,
+`src/lib/qrcode.js` + `src/components/QrCode.jsx` (dependency-free SVG QR),
+upgraded `WaitlistModal.jsx` to the dual-tab "Get CampusMart AI" modal
+(default Android APK tab with download CTA, generated QR, 3-step install
+strip, metadata badges; iOS/campus waitlist as tab 2), live campus-feed sync
+in `LiveSandbox.jsx` + `AppPreview.jsx` with connection badge + Refresh, and
+`.env.example` documenting `VITE_API_BASE_URL` / `VITE_APK_DOWNLOAD_URL`.
+Build verified clean (`npm run build`).*

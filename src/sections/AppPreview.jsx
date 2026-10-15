@@ -1,6 +1,8 @@
 import { useId, useState } from "react";
 import { BadgeCheck, Camera, MapPin, Send, ShieldCheck, Zap } from "lucide-react";
 import Reveal from "../components/Reveal.jsx";
+import ApiStatusBadge from "../components/ApiStatusBadge.jsx";
+import { useLiveFeed } from "../hooks/useLiveFeed.js";
 import { feedListings, chatMessages } from "../data/features.js";
 
 const TABS = [
@@ -64,10 +66,25 @@ function PhoneShell({ title, children }) {
   );
 }
 
-function SmartFeed() {
+function mapProductToPhoneItem(product) {
+  const price = Number(product.suggested_price ?? product.listed_price ?? 0) || 0;
+  const trustRaw = Number(product.seller_trust_score);
+  const trust = Number.isFinite(trustRaw)
+    ? Math.round(Math.min(100, Math.max(0, trustRaw)))
+    : 90;
+  return {
+    id: `live-${product.id}`,
+    title: product.title || "Campus listing",
+    price,
+    trust,
+    tag: (product.category || "CAMPUS").toUpperCase(),
+  };
+}
+
+function SmartFeed({ items }) {
   return (
     <ul className="px-4 py-3">
-      {feedListings.map((item) => (
+      {items.map((item) => (
         <li
           key={item.id}
           className="border-b border-hairline py-3.5 last:border-b-0"
@@ -217,6 +234,20 @@ export default function AppPreview() {
   const [tab, setTab] = useState("feed");
   const { title, Component } = VIEWS[tab];
 
+  const {
+    products: liveProducts,
+    online: liveOnline,
+    loading: liveLoading,
+    refresh: refreshLiveFeed,
+  } = useLiveFeed();
+
+  const phoneFeedItems =
+    liveProducts.length > 0
+      ? liveProducts.slice(0, 4).map(mapProductToPhoneItem)
+      : feedListings;
+
+  const viewProps = tab === "feed" ? { items: phoneFeedItems } : {};
+
   return (
     <section id="preview" className="border-t border-hairline bg-abyss">
       <div className="mx-auto max-w-6xl px-6 py-24 md:py-32">
@@ -234,6 +265,12 @@ export default function AppPreview() {
                 builds listings for you, and every conversation stays inside a
                 verified campus network. Switch views to walk through it.
               </p>
+              <ApiStatusBadge
+                online={liveOnline}
+                loading={liveLoading}
+                onRefresh={refreshLiveFeed}
+                className="mt-6"
+              />
             </Reveal>
 
             <Reveal delay={100} className="mt-10">
@@ -318,7 +355,7 @@ export default function AppPreview() {
               aria-labelledby={`${groupId}-tab-${tab}`}
             >
               <PhoneShell title={title}>
-                <Component />
+                <Component {...viewProps} />
               </PhoneShell>
               <p className="mt-5 text-center text-[0.6875rem] text-faint">
                 Flutter app — interface preview

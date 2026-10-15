@@ -1,5 +1,13 @@
-import { useEffect, useId, useRef, useState } from "react";
-import { Check, Copy, Download, ShieldCheck, X } from "lucide-react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
+import {
+  Check,
+  Copy,
+  Download,
+  ShieldCheck,
+  Smartphone,
+  X,
+} from "lucide-react";
+import QrCode from "./QrCode.jsx";
 
 const CONSUMER_DOMAINS = [
   "gmail.com",
@@ -21,6 +29,37 @@ const CONSUMER_DOMAINS = [
 
 const EMPTY = { name: "", college: "", email: "" };
 
+const TABS = [
+  { id: "apk", label: "Android APK", icon: Smartphone },
+  { id: "waitlist", label: "iOS Waitlist", icon: ShieldCheck },
+];
+
+const APK_URL = import.meta.env.VITE_APK_DOWNLOAD_URL || "/campusmart-ai.apk";
+
+const INSTALL_STEPS = [
+  {
+    n: "01",
+    title: "Download the APK",
+    body: "Tap the download button or scan the QR code with your phone camera.",
+  },
+  {
+    n: "02",
+    title: "Allow browser install permission",
+    body: "When Android prompts you, allow your browser to install apps from unknown sources for this one-time install.",
+  },
+  {
+    n: "03",
+    title: "Sign in with your campus email",
+    body: "Open the app and verify your institutional email to activate your verified student account.",
+  },
+];
+
+const APP_METADATA = [
+  "Flutter 3.x",
+  "Android 5.0+ (API 21+)",
+  "Verified by Infinity Crew",
+];
+
 function classifyEmail(rawEmail) {
   const email = rawEmail.trim().toLowerCase();
   const match = email.match(/^[^\s@]+@([^\s@]+\.[^\s@]+)$/);
@@ -37,7 +76,9 @@ export default function WaitlistModal({ open, onClose }) {
   const panelRef = useRef(null);
   const triggerRef = useRef(null);
   const nameRef = useRef(null);
+  const downloadRef = useRef(null);
 
+  const [activeTab, setActiveTab] = useState("apk");
   const [values, setValues] = useState(EMPTY);
   const [errors, setErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
@@ -47,7 +88,12 @@ export default function WaitlistModal({ open, onClose }) {
 
   const emailInfo = classifyEmail(values.email);
 
-  // Lock body scroll while open
+  const absoluteApkUrl = useMemo(() => {
+    if (typeof window === "undefined") return APK_URL;
+    if (APK_URL.startsWith("/")) return window.location.origin + APK_URL;
+    return APK_URL;
+  }, []);
+
   useEffect(() => {
     if (!open) return;
     const previous = document.body.style.overflow;
@@ -57,13 +103,14 @@ export default function WaitlistModal({ open, onClose }) {
     };
   }, [open]);
 
-  // Initial focus + restore focus to trigger on close
   useEffect(() => {
     if (!open) return;
 
     const timer = window.setTimeout(() => {
-      if (!submitted && nameRef.current) {
+      if (activeTab === "waitlist" && !submitted && nameRef.current) {
         nameRef.current.focus();
+      } else if (activeTab === "apk" && downloadRef.current) {
+        downloadRef.current.focus();
       } else {
         panelRef.current?.focus();
       }
@@ -100,11 +147,11 @@ export default function WaitlistModal({ open, onClose }) {
       window.clearTimeout(timer);
       document.removeEventListener("keydown", handleKeyDown, true);
     };
-  }, [open, submitted, onClose]);
+  }, [open, activeTab, submitted, onClose]);
 
-  // Reset transient state whenever the modal reopens
   useEffect(() => {
     if (open) {
+      setActiveTab("apk");
       setValues(EMPTY);
       setErrors({});
       setSubmitted(false);
@@ -112,7 +159,6 @@ export default function WaitlistModal({ open, onClose }) {
     }
   }, [open]);
 
-  // Track the invoking element so focus can return to it
   useEffect(() => {
     if (!open) return;
     if (document.activeElement instanceof HTMLElement) {
@@ -120,7 +166,6 @@ export default function WaitlistModal({ open, onClose }) {
     }
   }, [open]);
 
-  // Restore focus to the trigger on close
   useEffect(() => {
     if (open) return;
     const node = triggerRef.current;
@@ -176,25 +221,32 @@ export default function WaitlistModal({ open, onClose }) {
         ? "Campus email detected — priority verification."
         : "Use your campus/institutional email for priority verification.";
 
+  const onTabKeyDown = (event) => {
+    const index = TABS.findIndex((t) => t.id === activeTab);
+    if (event.key === "ArrowRight") {
+      setActiveTab(TABS[(index + 1) % TABS.length].id);
+    } else if (event.key === "ArrowLeft") {
+      setActiveTab(TABS[(index - 1 + TABS.length) % TABS.length].id);
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-[70] flex items-end justify-center p-0 sm:items-center sm:p-6">
-      {/* Backdrop */}
       <button
         type="button"
-        aria-label="Close waitlist"
+        aria-label="Close download dialog"
         tabIndex={-1}
         className="absolute inset-0 bg-void/80 backdrop-blur-sm"
         onClick={onClose}
       />
 
-      {/* Panel */}
       <div
         ref={panelRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
         tabIndex={-1}
-        className="relative w-full max-w-lg border border-hairline-strong bg-abyss shadow-[0_0_0_1px_rgba(4,6,10,0.6),0_24px_60px_rgba(0,0,0,0.5)] focus:outline-none"
+        className="relative max-h-[92vh] w-full max-w-xl overflow-y-auto border border-hairline-strong bg-abyss shadow-[0_0_0_1px_rgba(4,6,10,0.6),0_24px_60px_rgba(0,0,0,0.5)] focus:outline-none"
       >
         <span
           aria-hidden="true"
@@ -203,12 +255,12 @@ export default function WaitlistModal({ open, onClose }) {
 
         <div className="flex items-start justify-between gap-4 border-b border-hairline px-6 py-5 sm:px-8">
           <div>
-            <p className="label-caps text-accent">Student Early Access</p>
+            <p className="label-caps text-accent">Direct APK & Early Access</p>
             <h2
               id={titleId}
               className="mt-2 text-xl font-semibold tracking-tight text-ink sm:text-2xl"
             >
-              {submitted ? "You're on the list" : "Join the campus waitlist"}
+              Get CampusMart AI
             </h2>
           </div>
           <button
@@ -221,8 +273,123 @@ export default function WaitlistModal({ open, onClose }) {
           </button>
         </div>
 
-        {submitted ? (
-          <div className="px-6 py-8 sm:px-8">
+        <div className="border-b border-hairline px-6 sm:px-8">
+          <div
+            role="tablist"
+            aria-label="Get the app"
+            className="-mb-px flex gap-6"
+          >
+            {TABS.map((item) => {
+              const Icon = item.icon;
+              const active = item.id === activeTab;
+              return (
+                <button
+                  key={item.id}
+                  role="tab"
+                  type="button"
+                  id={`${titleId}-tab-${item.id}`}
+                  aria-selected={active}
+                  aria-controls={`${titleId}-panel-${item.id}`}
+                  tabIndex={active ? 0 : -1}
+                  onClick={() => setActiveTab(item.id)}
+                  onKeyDown={onTabKeyDown}
+                  className={`inline-flex h-12 items-center gap-2 border-b-2 text-sm font-medium transition-colors duration-200 ${
+                    active
+                      ? "border-accent text-accent"
+                      : "border-transparent text-muted hover:text-ink"
+                  }`}
+                >
+                  <Icon className="h-4 w-4" aria-hidden="true" />
+                  {item.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {activeTab === "apk" ? (
+          <div
+            role="tabpanel"
+            id={`${titleId}-panel-apk`}
+            aria-labelledby={`${titleId}-tab-apk`}
+            className="px-6 py-6 sm:px-8"
+          >
+            <a
+              ref={downloadRef}
+              href={APK_URL}
+              download
+              className="inline-flex h-14 w-full items-center justify-center gap-3 bg-accent text-sm font-semibold text-void transition-all duration-150 hover:brightness-110 active:scale-[0.98]"
+            >
+              <Download className="h-5 w-5" aria-hidden="true" />
+              Download Android APK (v1.0.0 Release)
+            </a>
+
+            <div className="mt-7 grid gap-7 sm:grid-cols-[auto_1fr] sm:items-start sm:gap-8">
+              <div className="flex flex-col items-center gap-3 border border-hairline-strong bg-surface p-4">
+                <QrCode value={absoluteApkUrl} size={148} />
+                <p className="label-caps text-faint">Scan to install</p>
+                <p
+                  className="max-w-[148px] truncate text-center text-[0.625rem] text-faint"
+                  title={absoluteApkUrl}
+                >
+                  {absoluteApkUrl}
+                </p>
+              </div>
+
+              <div>
+                <p className="label-caps text-faint">Install in 3 steps</p>
+                <ol className="mt-3 border-t border-hairline">
+                  {INSTALL_STEPS.map((step) => (
+                    <li
+                      key={step.n}
+                      className="flex gap-4 border-b border-hairline py-3.5"
+                    >
+                      <span className="label-caps mt-0.5 shrink-0 text-accent">
+                        {step.n}
+                      </span>
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-ink">
+                          {step.title}
+                        </p>
+                        <p className="mt-1 text-xs leading-relaxed text-muted">
+                          {step.body}
+                        </p>
+                      </div>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            </div>
+
+            <div className="mt-7 flex flex-wrap gap-2">
+              {APP_METADATA.map((badge) => (
+                <span
+                  key={badge}
+                  className="inline-flex items-center gap-1.5 border border-hairline-strong bg-surface px-2.5 py-1.5 text-[0.6875rem] font-medium text-muted"
+                >
+                  {badge === "Verified by Infinity Crew" && (
+                    <ShieldCheck
+                      className="h-3 w-3 text-accent"
+                      aria-hidden="true"
+                    />
+                  )}
+                  {badge}
+                </span>
+              ))}
+            </div>
+
+            <p className="mt-5 text-[0.6875rem] leading-relaxed text-faint">
+              Signed release build served directly from campusmart.ai. On iOS?
+              Switch to the waitlist tab for campus rollout updates.
+            </p>
+          </div>
+        ) : submitted ? (
+          <div
+            role="tabpanel"
+            id={`${titleId}-panel-waitlist`}
+            aria-labelledby={`${titleId}-tab-waitlist`}
+            className="px-6 py-8 sm:px-8"
+          >
             <div className="border border-hairline-strong bg-surface p-6">
               <div className="flex items-center gap-3">
                 <span className="flex h-9 w-9 items-center justify-center border border-accent/40 bg-accent/[0.07] text-accent">
@@ -275,10 +442,17 @@ export default function WaitlistModal({ open, onClose }) {
             </button>
           </div>
         ) : (
-          <form onSubmit={handleSubmit} noValidate className="px-6 py-6 sm:px-8">
+          <form
+            onSubmit={handleSubmit}
+            noValidate
+            role="tabpanel"
+            id={`${titleId}-panel-waitlist`}
+            aria-labelledby={`${titleId}-tab-waitlist`}
+            className="px-6 py-6 sm:px-8"
+          >
             <p className="text-sm leading-relaxed text-muted">
-              The app is rolling out campus by campus. Join the waitlist for
-              early access — verified students first.
+              iOS and expanded campus access are rolling out gradually. Join the
+              waitlist — verified students first.
             </p>
 
             <div className="mt-6 space-y-5">
@@ -418,7 +592,7 @@ export default function WaitlistModal({ open, onClose }) {
               type="submit"
               className="mt-8 inline-flex h-12 w-full items-center justify-center gap-2.5 bg-accent text-sm font-semibold text-void transition-all duration-150 hover:brightness-110 active:scale-[0.98]"
             >
-              <Download className="h-4 w-4" aria-hidden="true" />
+              <Smartphone className="h-4 w-4" aria-hidden="true" />
               Request Early Access
             </button>
 

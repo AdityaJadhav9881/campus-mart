@@ -11,7 +11,9 @@ import {
   Upload,
 } from "lucide-react";
 import Reveal from "../components/Reveal.jsx";
+import ApiStatusBadge from "../components/ApiStatusBadge.jsx";
 import { usePipeline } from "../hooks/usePipeline.js";
+import { useLiveFeed } from "../hooks/useLiveFeed.js";
 import {
   categoryBasePrice,
   prohibitedTerms,
@@ -249,6 +251,7 @@ function AgentStepper({ step, running, steps }) {
 
 function FeedCard({ item, isNew }) {
   const flagged = item.clearance === "FLAGGED";
+  const isLive = item.source === "live";
 
   return (
     <li
@@ -286,7 +289,8 @@ function FeedCard({ item, isNew }) {
                 {item.title}
               </p>
               <p className="label-caps mt-1 text-faint">
-                {item.category} · {item.conditionLabel} · {item.ageYears}y
+                {item.category} · {item.conditionLabel}
+                {!isLive ? ` · ${item.ageYears}y` : ""}
               </p>
             </div>
             <p className="shrink-0 text-base font-semibold tabular-nums text-accent">
@@ -295,6 +299,16 @@ function FeedCard({ item, isNew }) {
           </div>
 
           <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-2">
+            {isLive && (
+              <span className="inline-flex items-center gap-1.5 border border-accent/30 bg-accent/[0.06] px-2 py-1 text-[0.6875rem] font-medium text-accent">
+                <span
+                  aria-hidden="true"
+                  className="agent-dot h-1.5 w-1.5 rounded-full bg-accent"
+                />
+                LIVE
+              </span>
+            )}
+
             <span
               className={`inline-flex items-center gap-1.5 border px-2 py-1 text-[0.6875rem] font-medium ${
                 flagged
@@ -315,9 +329,11 @@ function FeedCard({ item, isNew }) {
               Verified student
             </span>
 
-            <span className="text-[0.6875rem] tabular-nums text-faint">
-              Confidence {(item.confidence * 100).toFixed(0)}%
-            </span>
+            {item.confidence != null && (
+              <span className="text-[0.6875rem] tabular-nums text-faint">
+                Confidence {(item.confidence * 100).toFixed(0)}%
+              </span>
+            )}
           </div>
 
           {flagged && item.flaggedTerms?.length > 0 && (
@@ -340,12 +356,23 @@ export default function LiveSandbox() {
   const [ageYears, setAgeYears] = useState("1");
   const [conditionId, setConditionId] = useState("good");
   const [preview, setPreview] = useState(null);
-  const [feed, setFeed] = useState(seedFeedItems);
+  const [sandboxFeed, setSandboxFeed] = useState([]);
   const [newestId, setNewestId] = useState(null);
   const [error, setError] = useState("");
 
   const { step, running, done, run } = usePipeline();
+  const {
+    feedItems: liveItems,
+    online: liveOnline,
+    loading: liveLoading,
+    refresh: refreshLiveFeed,
+  } = useLiveFeed();
   const resultsRef = useRef(null);
+
+  const feed = useMemo(() => {
+    const base = liveItems.length > 0 ? liveItems : seedFeedItems;
+    return [...base, ...sandboxFeed];
+  }, [liveItems, sandboxFeed]);
 
   const stepsWithResults = useMemo(() => {
     if (!done && step === 0) return AGENT_STEPS;
@@ -418,7 +445,7 @@ export default function LiveSandbox() {
         ageYears
       );
       const id = `item-${Date.now()}`;
-      setFeed((prev) => [
+      setSandboxFeed((prev) => [
         {
           id,
           title: title.trim(),
@@ -644,11 +671,22 @@ export default function LiveSandbox() {
 
             {/* Campus Feed */}
             <Reveal delay={120} className="mt-10">
-              <div className="flex items-baseline justify-between border-b border-hairline pb-3">
-                <h3 className="text-sm font-medium tracking-tight text-ink">
-                  Campus Feed
-                </h3>
+              <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-3 border-b border-hairline pb-3">
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+                  <h3 className="text-sm font-medium tracking-tight text-ink">
+                    Campus Feed
+                  </h3>
+                  <ApiStatusBadge
+                    online={liveOnline}
+                    loading={liveLoading}
+                    onRefresh={refreshLiveFeed}
+                  />
+                </div>
                 <span className="label-caps text-faint">
+                  {liveOnline && !liveLoading
+                    ? "Synced from backend"
+                    : "Demo listings"}
+                  {" · "}
                   {feed.length} listings
                 </span>
               </div>
