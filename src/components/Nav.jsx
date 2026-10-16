@@ -32,7 +32,7 @@ export default function Nav() {
   const firstName = user?.name ? user.name.split(" ")[0] : "Student";
 
   return (
-    <header className="relative z-40 shrink-0 border-b border-line bg-paper/90 backdrop-blur">
+    <header className="sticky top-0 z-40 shrink-0 border-b border-line bg-paper/90 backdrop-blur">
       <div className="mx-auto flex h-16 max-w-6xl items-center gap-4 px-5 sm:px-8">
         <Link
           to="/"

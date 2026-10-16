@@ -10,7 +10,7 @@ const SUGGESTIONS = [
 
 export default function NotFound() {
   return (
-    <div className="page-in flex h-full items-center justify-center overflow-y-auto scroll-slim px-5 py-10">
+    <div className="page-in flex min-h-[60vh] items-center justify-center px-5 py-12">
       <div className="w-full max-w-md text-center">
         <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-line bg-card text-faint">
           <Compass className="h-5 w-5" aria-hidden="true" />

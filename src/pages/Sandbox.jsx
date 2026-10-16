@@ -293,7 +293,7 @@ export default function Sandbox() {
   };
 
   return (
-    <div className="page-in h-full overflow-y-auto scroll-slim">
+    <div className="page-in w-full pb-10">
       <div className="mx-auto max-w-6xl px-5 py-8 sm:px-8">
         <header className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
           <div className="min-w-0">
@@ -319,7 +319,7 @@ export default function Sandbox() {
 
         <div className="mt-6 grid gap-5 lg:grid-cols-[0.92fr_1.08fr]">
           {/* Inputs */}
-          <section className="card p-5 sm:p-6">
+          <section className="card min-w-0 p-4 sm:p-6">
             <Dropzone preview={preview} onFile={handleFile} onClear={clearFile} />
 
             <div className="mt-5">
@@ -430,7 +430,7 @@ export default function Sandbox() {
           </section>
 
           {/* Pipeline + result */}
-          <section className="card p-5 sm:p-6">
+          <section className="card min-w-0 p-4 sm:p-6">
             <div className="flex items-center justify-between gap-3 border-b border-line pb-3">
               <span className="text-[13px] font-medium text-ink">How it works</span>
               <span

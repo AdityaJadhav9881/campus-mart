@@ -104,17 +104,17 @@ export default function Download() {
   const apkSize = useApkSize(signedIn ? APK_URL : null);
 
   return (
-    <div className="page-in h-full overflow-y-auto scroll-slim">
-      <div className="mx-auto grid min-h-full max-w-6xl items-center gap-10 px-5 py-10 sm:px-8 lg:grid-cols-[1fr_1fr] lg:gap-14 lg:py-12">
+    <div className="page-in w-full">
+      <div className="mx-auto grid max-w-6xl items-start gap-8 px-5 py-8 sm:px-8 sm:py-10 lg:grid-cols-[1fr_1fr] lg:items-center lg:gap-14 lg:py-12">
         {/* Download */}
-        <section>
+        <section className="min-w-0">
           <p className="eyebrow">Android app</p>
 
-          <h1 className="mt-4 text-[2.25rem] leading-[1.06] sm:text-4xl">
+          <h1 className="mt-3 text-3xl font-medium leading-tight sm:mt-4 sm:text-4xl">
             Get CampusMart AI on your phone.
           </h1>
 
-          <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-muted">
+          <p className="mt-3.5 max-w-xl text-[15px] leading-relaxed text-muted sm:mt-4">
             The app is where you shoot the four photos, get the ₹ price and
             message verified students. Download the signed APK directly — no
             Play Store, no waitlist.
@@ -125,14 +125,14 @@ export default function Download() {
               <div className="mt-6 space-y-4">
                 <SignedInBar user={user} onSignOut={signOut} />
 
-                <div className="flex flex-wrap gap-3">
-                  <a href={APK_URL} download className="btn btn-primary h-12 px-6">
-                    <DownloadIcon className="h-4.5 w-4.5" aria-hidden="true" />
+                <div className="flex flex-col gap-3 sm:flex-row">
+                  <a href={APK_URL} download className="btn btn-primary h-12 px-6 w-full sm:w-auto">
+                    <DownloadIcon className="h-4.5 w-4.5 shrink-0" aria-hidden="true" />
                     Download Android APK
                   </a>
-                  <Link to="/marketplace" className="btn btn-secondary">
+                  <Link to="/marketplace" className="btn btn-secondary w-full sm:w-auto">
                     Browse listings first
-                    <ArrowRight className="h-4 w-4" aria-hidden="true" />
+                    <ArrowRight className="h-4 w-4 shrink-0" aria-hidden="true" />
                   </Link>
                 </div>
 
@@ -218,11 +218,11 @@ export default function Download() {
         </section>
 
         {/* Auth card (locked) or QR + install steps (unlocked) */}
-        <section>
+        <section className="min-w-0">
           {!signedIn ? (
             <AuthCard />
           ) : (
-            <div className="card p-5 sm:p-6">
+            <div className="card p-4 sm:p-6">
               <div className="flex flex-wrap items-baseline justify-between gap-2">
                 <h2 className="text-lg leading-none">Install in three steps</h2>
                 <span className="inline-flex items-center gap-1.5 text-xs text-faint">

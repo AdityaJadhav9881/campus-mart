@@ -70,56 +70,56 @@ export default function Home() {
     products.length > 0 ? products.slice(0, 3) : demoListings.slice(0, 3);
 
   return (
-    <div className="page-in h-full overflow-y-auto scroll-slim">
-      <div className="mx-auto grid min-h-full max-w-6xl items-center gap-10 px-5 py-10 sm:px-8 lg:grid-cols-[1.05fr_0.95fr] lg:gap-14 lg:py-12">
+    <div className="page-in w-full">
+      <div className="mx-auto grid max-w-6xl items-start gap-8 px-5 py-8 sm:px-8 sm:py-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-14 lg:py-12">
         {/* Intro */}
-        <section>
+        <section className="min-w-0">
           <p className="eyebrow">The campus marketplace</p>
 
-          <h1 className="mt-4 text-[2.25rem] leading-[1.06] sm:text-5xl">
+          <h1 className="mt-3 text-3xl font-medium leading-tight sm:mt-4 sm:text-5xl sm:leading-[1.08]">
             Buy and sell with people on your own campus.
           </h1>
 
-          <p className="mt-5 max-w-xl text-[15px] leading-relaxed text-muted sm:text-base">
+          <p className="mt-3.5 max-w-xl text-[15px] leading-relaxed text-muted sm:mt-5 sm:text-base">
             List a textbook, lab kit or gadget in under a minute. Our vision AI
             reads four photos, suggests a fair resale price in ₹, and puts a
             trust score next to every seller — so you know who you are dealing
             with before you message them.
           </p>
 
-          <div className="mt-7 flex flex-wrap gap-3">
-            <Link to="/marketplace" className="btn btn-primary">
-              <Store className="h-4 w-4" aria-hidden="true" />
+          <div className="mt-6 flex flex-col gap-3 sm:mt-7 sm:flex-row sm:items-center">
+            <Link to="/marketplace" className="btn btn-primary w-full sm:w-auto">
+              <Store className="h-4 w-4 shrink-0" aria-hidden="true" />
               Browse Live Marketplace
             </Link>
-            <Link to="/download" className="btn btn-secondary">
-              <Smartphone className="h-4 w-4" aria-hidden="true" />
+            <Link to="/download" className="btn btn-secondary w-full sm:w-auto">
+              <Smartphone className="h-4 w-4 shrink-0" aria-hidden="true" />
               Get the Android App
             </Link>
           </div>
 
-          <ul className="mt-7 flex flex-wrap gap-x-5 gap-y-2.5">
+          <ul className="mt-6 flex flex-wrap gap-x-5 gap-y-2.5 sm:mt-7">
             {PROMISES.map((item) => (
               <li
                 key={item}
                 className="flex items-center gap-2 text-[13px] text-muted"
               >
-                <Check className="h-3.5 w-3.5 text-positive" aria-hidden="true" />
-                {item}
+                <Check className="h-3.5 w-3.5 shrink-0 text-positive" aria-hidden="true" />
+                <span>{item}</span>
               </li>
             ))}
           </ul>
         </section>
 
         {/* Live counters + previews */}
-        <aside className="space-y-4">
-          <div className="card p-5">
+        <aside className="min-w-0 space-y-4">
+          <div className="card p-4 sm:p-5">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <p className="text-sm font-medium text-ink">
                 Campus Activity
               </p>
               <span
-                className={`inline-flex items-center gap-2 rounded-full border px-2.5 py-1 text-[11px] font-medium ${
+                className={`inline-flex shrink-0 items-center gap-2 rounded-full border px-2.5 py-1 text-[11px] font-medium ${
                   mode === "live"
                     ? "border-positive/25 bg-positive-soft text-positive"
                     : "border-line bg-sunken text-muted"
@@ -155,7 +155,7 @@ export default function Home() {
             </div>
           </div>
 
-          <div className="card p-5">
+          <div className="card p-4 sm:p-5">
             <div className="flex items-baseline justify-between gap-3">
               <h2 className="text-lg leading-none">Fresh on campus</h2>
               <Link

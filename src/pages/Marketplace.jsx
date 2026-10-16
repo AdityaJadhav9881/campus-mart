@@ -62,7 +62,7 @@ export default function Marketplace() {
   };
 
   return (
-    <div className="page-in flex h-full flex-col px-5 pt-7 pb-4 sm:px-8">
+    <div className="page-in mx-auto w-full max-w-6xl px-5 pt-6 pb-12 sm:px-8 sm:pt-8">
       <header className="shrink-0">
         <div className="mx-auto flex max-w-6xl flex-wrap items-end justify-between gap-x-6 gap-y-4">
           <div className="min-w-0">
@@ -144,7 +144,7 @@ export default function Marketplace() {
         )}
       </header>
 
-      <div className="mx-auto mt-6 w-full min-h-0 max-w-6xl flex-1 overflow-y-auto scroll-slim pb-4">
+      <div className="mt-6 w-full">
         <WarmupBanner show={warmup.show} elapsed={warmup.elapsed} className="mb-5" />
 
         {loading ? (

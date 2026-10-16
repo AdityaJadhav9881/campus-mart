@@ -39,10 +39,11 @@ function Shell() {
 
   useEffect(() => {
     mainRef.current?.focus({ preventScroll: true });
+    window.scrollTo(0, 0);
   }, [pathname]);
 
   return (
-    <div className="flex h-full flex-col bg-paper text-ink">
+    <div className="flex min-h-screen flex-col bg-paper text-ink">
       <a
         href="#main"
         className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-ink focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-paper"
@@ -52,7 +53,7 @@ function Shell() {
 
       <Nav />
 
-      <main id="main" ref={mainRef} tabIndex={-1} className="min-h-0 flex-1 outline-none">
+      <main id="main" ref={mainRef} tabIndex={-1} className="flex-1 outline-none">
         <Routes routes={ROUTES} notFound={<NotFound />} />
       </main>
 
