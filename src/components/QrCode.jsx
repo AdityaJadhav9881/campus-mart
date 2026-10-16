@@ -1,7 +1,13 @@
 import { useMemo } from "react";
 import { qrMatrix } from "../lib/qrcode.js";
 
-export default function QrCode({ value, size = 160, className = "" }) {
+export default function QrCode({
+  value,
+  size = 168,
+  className = "",
+  background = "#ffffff",
+  foreground = "#1c1917",
+}) {
   const matrix = useMemo(() => {
     try {
       return qrMatrix(value);
@@ -14,9 +20,9 @@ export default function QrCode({ value, size = 160, className = "" }) {
     return (
       <div
         style={{ width: size, height: size }}
-        className={`flex items-center justify-center border border-hairline-strong bg-surface p-3 text-center ${className}`}
+        className={`flex items-center justify-center rounded-xl border border-line bg-sunken p-3 text-center ${className}`}
       >
-        <span className="break-all text-[0.625rem] leading-relaxed text-faint">
+        <span className="break-all text-xs leading-relaxed text-muted">
           {value}
         </span>
       </div>
@@ -37,13 +43,13 @@ export default function QrCode({ value, size = 160, className = "" }) {
       viewBox={`0 0 ${dim} ${dim}`}
       width={size}
       height={size}
-      className={className}
+      className={`rounded-lg ${className}`}
       role="img"
       aria-label={`QR code for ${value}`}
       shapeRendering="crispEdges"
     >
-      <rect width={dim} height={dim} fill="#eef3f9" />
-      <path d={path} fill="#04060a" />
+      <rect width={dim} height={dim} fill={background} />
+      <path d={path} fill={foreground} />
     </svg>
   );
 }

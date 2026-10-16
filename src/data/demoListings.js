@@ -1,0 +1,93 @@
+/* Sample listings used only when the Render backend is unreachable,
+   so the marketplace never renders as an empty screen. */
+
+export const demoListings = [
+  {
+    id: "demo-1",
+    title: "Engineering Mathematics Vol. II",
+    description:
+      "B.S. Grewal, 4th edition. Little highlighting, spine intact — used for one semester.",
+    category: "Academic Material",
+    condition: "good",
+    listed_price: 289,
+    suggested_price: 310,
+    seller_trust_score: 93,
+    image_url: null,
+    created_at: null,
+    demo: true,
+  },
+  {
+    id: "demo-2",
+    title: "Casio fx-991EX Classwiz",
+    description:
+      "Barely used scientific calculator with original box and receipt.",
+    category: "Electronics",
+    condition: "like-new",
+    listed_price: 950,
+    suggested_price: 1040,
+    seller_trust_score: 91,
+    image_url: null,
+    created_at: null,
+    demo: true,
+  },
+  {
+    id: "demo-3",
+    title: "Mini Drafter + First-Year Lab Kit",
+    description:
+      "Complete drafter set, drawing board and lab record notebooks.",
+    category: "Lab Equipment",
+    condition: "good",
+    listed_price: 640,
+    suggested_price: 700,
+    seller_trust_score: 88,
+    image_url: null,
+    created_at: null,
+    demo: true,
+  },
+  {
+    id: "demo-4",
+    title: "Raspberry Pi 4 Model B (4GB)",
+    description:
+      "With case, 32GB card and power supply. Runs a small home server.",
+    category: "Electronics",
+    condition: "fair",
+    listed_price: 3400,
+    suggested_price: 3650,
+    seller_trust_score: 86,
+    image_url: null,
+    created_at: null,
+    demo: true,
+  },
+  {
+    id: "demo-5",
+    title: "Op-Amps & Linear ICs Handbook",
+    description: "Sedra & Smith reference book, clean pages, no markings.",
+    category: "Academic Material",
+    condition: "like-new",
+    listed_price: 430,
+    suggested_price: 470,
+    seller_trust_score: 96,
+    image_url: null,
+    created_at: null,
+    demo: true,
+  },
+  {
+    id: "demo-6",
+    title: "20MHz Oscilloscope Probe Set",
+    description: "Two passive probes with hooks and ground leads, tested working.",
+    category: "Lab Equipment",
+    condition: "good",
+    listed_price: 1150,
+    suggested_price: 1240,
+    seller_trust_score: 90,
+    image_url: null,
+    created_at: null,
+    demo: true,
+  },
+];
+
+export const FALLBACK_CATEGORIES = [
+  "Academic Material",
+  "Lab Equipment",
+  "Electronics",
+];

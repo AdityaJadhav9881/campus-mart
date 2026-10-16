@@ -1,47 +1,70 @@
-import { useCallback, useEffect, useState } from "react";
-import Navigation from "./sections/Navigation.jsx";
-import Hero from "./sections/Hero.jsx";
-import Features from "./sections/Features.jsx";
-import PriceEstimator from "./sections/PriceEstimator.jsx";
-import LiveSandbox from "./sections/LiveSandbox.jsx";
-import ArchitectureDiagram from "./sections/ArchitectureDiagram.jsx";
-import AppPreview from "./sections/AppPreview.jsx";
-import About from "./sections/About.jsx";
-import Faq from "./sections/Faq.jsx";
-import Footer from "./sections/Footer.jsx";
-import WaitlistModal from "./components/WaitlistModal.jsx";
+import { useEffect, useRef } from "react";
+import {
+  Router,
+  Routes,
+  useLocation,
+} from "./router/router.jsx";
+import Nav from "./components/Nav.jsx";
+import Footer from "./components/Footer.jsx";
+import Home from "./pages/Home.jsx";
+import Marketplace from "./pages/Marketplace.jsx";
+import HowItWorks from "./pages/HowItWorks.jsx";
+import Sandbox from "./pages/Sandbox.jsx";
+import Download from "./pages/Download.jsx";
+import NotFound from "./pages/NotFound.jsx";
 
-export default function App() {
-  const [waitlistOpen, setWaitlistOpen] = useState(false);
+const ROUTES = [
+  { path: "/", element: <Home /> },
+  { path: "/marketplace", element: <Marketplace /> },
+  { path: "/how-it-works", element: <HowItWorks /> },
+  { path: "/sandbox", element: <Sandbox /> },
+  { path: "/download", element: <Download /> },
+];
 
-  const openWaitlist = useCallback(() => setWaitlistOpen(true), []);
-  const closeWaitlist = useCallback(() => setWaitlistOpen(false), []);
+const TITLES = {
+  "/": "CampusMart AI — Buy and sell on your own campus",
+  "/marketplace": "Live Campus Marketplace — CampusMart AI",
+  "/how-it-works": "Four-photo AI verification — CampusMart AI",
+  "/sandbox": "AI price & listing sandbox — CampusMart AI",
+  "/download": "Download the Android app — CampusMart AI",
+};
+
+function Shell() {
+  const { pathname } = useLocation();
+  const mainRef = useRef(null);
+
+  useEffect(() => {
+    document.title = TITLES[pathname] ?? "Page not found — CampusMart AI";
+  }, [pathname]);
+
+  useEffect(() => {
+    mainRef.current?.focus({ preventScroll: true });
+  }, [pathname]);
 
   return (
-    <div className="min-h-screen bg-void text-ink">
+    <div className="flex h-full flex-col bg-paper text-ink">
       <a
         href="#main"
-        className="sr-only focus:not-sr-only focus:fixed focus:left-6 focus:top-4 focus:z-[60] focus:bg-accent focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-void"
+        className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-ink focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-paper"
       >
         Skip to content
       </a>
 
-      <Navigation onDownload={openWaitlist} />
+      <Nav />
 
-      <main id="main">
-        <Hero onDownload={openWaitlist} />
-        <Features />
-        <PriceEstimator />
-        <LiveSandbox />
-        <ArchitectureDiagram />
-        <AppPreview />
-        <About />
-        <Faq />
+      <main id="main" ref={mainRef} tabIndex={-1} className="min-h-0 flex-1 outline-none">
+        <Routes routes={ROUTES} notFound={<NotFound />} />
       </main>
 
-      <Footer onDownload={openWaitlist} />
-
-      <WaitlistModal open={waitlistOpen} onClose={closeWaitlist} />
+      <Footer />
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <Router>
+      <Shell />
+    </Router>
   );
 }

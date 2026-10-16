@@ -4,41 +4,44 @@ export default function ApiStatusBadge({
   online,
   loading,
   onRefresh,
+  demo = false,
   className = "",
 }) {
   const label = loading
-    ? "Checking live feed…"
-    : online
-      ? "Connected to Live FastAPI Server"
-      : "Offline Demo Mode";
+    ? "Checking the backend…"
+    : demo
+      ? "Sample listings"
+      : online
+        ? "Connected to the live database"
+        : "Backend unreachable";
+
+  const tone = loading
+    ? "text-faint"
+    : online && !demo
+      ? "text-positive"
+      : "text-faint";
 
   return (
     <div className={`flex items-center gap-2 ${className}`}>
       <span
         role="status"
-        className={`inline-flex items-center gap-2 border px-2.5 py-1.5 transition-colors duration-300 ${
-          online
-            ? "border-accent/30 bg-accent/[0.06]"
-            : "border-hairline-strong bg-surface"
+        className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-medium ${tone} ${
+          online && !demo
+            ? "border-positive/25 bg-positive-soft"
+            : "border-line bg-card text-muted"
         }`}
       >
         <span
           aria-hidden="true"
           className={`h-1.5 w-1.5 shrink-0 rounded-full ${
             loading
-              ? "agent-dot bg-faint"
-              : online
-                ? "agent-dot bg-accent"
-                : "bg-faint/50"
+              ? "bg-faint"
+              : online && !demo
+                ? "live-dot bg-positive"
+                : "bg-faint/60"
           }`}
         />
-        <span
-          className={`whitespace-nowrap text-[0.6875rem] font-medium ${
-            online && !loading ? "text-accent" : "text-faint"
-          }`}
-        >
-          {label}
-        </span>
+        {label}
       </span>
 
       {onRefresh && (
@@ -46,9 +49,9 @@ export default function ApiStatusBadge({
           type="button"
           onClick={onRefresh}
           disabled={loading}
-          aria-label="Refresh live feed"
-          title="Refresh live feed"
-          className="flex h-8 w-8 shrink-0 items-center justify-center border border-hairline-strong bg-surface text-faint transition-colors duration-200 hover:border-accent/40 hover:text-accent disabled:cursor-not-allowed disabled:opacity-40"
+          aria-label="Refresh listings"
+          title="Refresh listings"
+          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-line bg-card text-faint transition-colors duration-200 hover:border-line-strong hover:text-ink disabled:cursor-not-allowed disabled:opacity-40"
         >
           <RefreshCw
             className={`h-3.5 w-3.5 ${loading ? "animate-spin" : ""}`}

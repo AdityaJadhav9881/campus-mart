@@ -13,12 +13,17 @@ A **single-page promotional / marketing website** for **CampusMart AI** — a
 multi-agent AI marketplace for college students to securely buy, sell, and
 exchange academic materials.
 
-- Purely **frontend**. No backend, no database, no auth, no real API calls.
+- **Frontend-only repo** (no backend, DB, or auth of its own), but since the
+  production-integration pass it makes **read-only live API calls** to the
+  separate FastAPI + PostgreSQL backend (`GET /`, `GET /products/`) for the
+  campus feed sync. When the API is unreachable the site falls back to an
+  offline demo mode with seed data.
 - It is a **showcase / lead-gen page** that proves the product's value using
-  interactive demos (waitlist modal, live price estimator, phone mockup,
-  in-browser pipeline sandbox, interactive architecture diagram).
+  interactive demos (dual-tab APK download + waitlist modal with generated QR
+  code, live price estimator, phone mockup, in-browser pipeline sandbox,
+  interactive architecture diagram).
 - The actual product is described as a **Flutter mobile app**; this site is the
-  web landing page for it.
+  web landing page for it, and hosts the direct Android APK download hub.
 
 Product pitch in one line: *a secure, AI-driven exchange for college students
 with intelligent listings, fair pricing, and trust built into every
@@ -518,18 +523,29 @@ tag to a real hosted image before going live for link previews.
     preview, FAQ, waitlist modal) + Vercel config. 22 files.
   - `489c8d8` — added LiveSandbox + ArchitectureDiagram, `data/sandbox.js`,
     `hooks/usePipeline.js`, nav tiering, and this context file.
+  - `41a79c0` — docs: sync PROJECT_CONTEXT with sandbox + architecture
+    explorer.
+  - `7e23f77` — **production-integration pass** (current): `src/api/client.js`,
+    `src/hooks/useLiveFeed.js`, `src/lib/qrcode.js`, `ApiStatusBadge.jsx`,
+    `QrCode.jsx`, dual-tab `WaitlistModal.jsx`, live feed sync in
+    LiveSandbox + AppPreview, `.env.example`, `.gitignore` (now ignores
+    `.env` / `.env.*` but tracks `.env.example`). 11 files, +1125/−92.
+    **Pushed to `origin/main`.**
 - PowerShell prints a spurious `NativeCommandError` on `git push` because git
   writes progress to stderr — check the final `main -> main` line to confirm
   success.
 - Line endings: Windows/CRLF warnings from git are expected and harmless.
-- `.gitignore` excludes `node_modules`, `dist`, `*.local`, `.DS_Store`,
-  editor dirs, and npm/yarn debug logs.
+- `.gitignore` excludes `node_modules`, `dist`, `*.local`, `.env` /
+  `.env.*` (except `.env.example`), `.DS_Store`, editor dirs, and npm/yarn
+  debug logs.
 
 ---
 
 ## 10. Constraints & conventions to keep
 
-1. **Frontend only** — do not add a backend, DB, or auth.
+1. **Frontend only** — do not add a backend, DB, or auth *to this repo*.
+   Consuming the existing FastAPI backend read-only (`src/api/client.js`) is
+   allowed; adding new server code here is not.
 2. **Infinity Design language** — void/abyss foundation, hairline borders,
    single cyan accent, precise spacing, restrained motion, generous negative
    space. No generic card grids, no gratuitous glow/neon.
@@ -578,13 +594,16 @@ below — it is the project's source of truth for future sessions.
 
 ---
 
-*Last updated: production-integration pass — added `src/api/client.js`
-(FastAPI health + `/products/` client), `src/hooks/useLiveFeed.js` (shared
-live-feed sync with cache/dedupe), `src/components/ApiStatusBadge.jsx`,
-`src/lib/qrcode.js` + `src/components/QrCode.jsx` (dependency-free SVG QR),
-upgraded `WaitlistModal.jsx` to the dual-tab "Get CampusMart AI" modal
+*Last updated: after commit `7e23f77` ("Add live FastAPI feed sync and APK
+download modal with QR code"), pushed to `origin/main`. Covers the
+production-integration pass — `src/api/client.js` (FastAPI health +
+`/products/` client), `src/hooks/useLiveFeed.js` (shared live-feed sync with
+cache/dedupe), `src/components/ApiStatusBadge.jsx`, `src/lib/qrcode.js` +
+`src/components/QrCode.jsx` (dependency-free SVG QR, versions 1–10, verified
+by round-trip decode + RS checks), dual-tab "Get CampusMart AI" modal
 (default Android APK tab with download CTA, generated QR, 3-step install
 strip, metadata badges; iOS/campus waitlist as tab 2), live campus-feed sync
-in `LiveSandbox.jsx` + `AppPreview.jsx` with connection badge + Refresh, and
-`.env.example` documenting `VITE_API_BASE_URL` / `VITE_APK_DOWNLOAD_URL`.
-Build verified clean (`npm run build`).*
+in `LiveSandbox.jsx` + `AppPreview.jsx` with connection badge + Refresh,
+`.env.example` documenting `VITE_API_BASE_URL` / `VITE_APK_DOWNLOAD_URL`, and
+`.gitignore` env handling. Build verified clean (`npm run build`), 311 kB JS
+/ 93.9 kB gzip.*
