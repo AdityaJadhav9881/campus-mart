@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   authLogin,
   authRegister,
+  authResendOtp,
   authSendOtp,
   authVerifyOtp,
 } from "../api/client.js";
@@ -71,11 +72,20 @@ export function useAuth() {
     [startSession]
   );
 
-  const sendOtp = useCallback(async ({ email }) => authSendOtp({ email }), []);
+  const sendOtp = useCallback(
+    async ({ name, email, password }) =>
+      authSendOtp({ name, email, password }),
+    []
+  );
+
+  const resendOtp = useCallback(
+    async ({ email }) => authResendOtp({ email }),
+    []
+  );
 
   const verifyOtp = useCallback(
-    async ({ email, otp, name, password }) => {
-      const { token, user } = await authVerifyOtp({ email, otp, name, password });
+    async ({ email, otp }) => {
+      const { token, user } = await authVerifyOtp({ email, otp });
       if (!startSession(token, user)) {
         throw new Error("Verification succeeded but no session token was returned.");
       }
@@ -107,10 +117,11 @@ export function useAuth() {
       user: session?.user ?? null,
       signIn,
       sendOtp,
+      resendOtp,
       verifyOtp,
       register,
       signOut,
     }),
-    [session, signIn, sendOtp, verifyOtp, register, signOut]
+    [session, signIn, sendOtp, resendOtp, verifyOtp, register, signOut]
   );
 }

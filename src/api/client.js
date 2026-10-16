@@ -310,19 +310,22 @@ export async function authLogin({ email, password }) {
   return { token: pickToken(body), user: pickUser(body, { email }) };
 }
 
-export async function authSendOtp({ email }) {
-  const body = await postJson("/auth/send-otp", { email });
+export async function authSendOtp({ name, email, password }) {
+  const body = await postJson("/auth/send-otp", { name, email, password });
   return body;
 }
 
-export async function authVerifyOtp({ email, otp, name, password }) {
+export async function authResendOtp({ email }) {
+  const body = await postJson("/auth/resend-otp", { email });
+  return body;
+}
+
+export async function authVerifyOtp({ email, otp }) {
   const body = await postJson("/auth/verify-otp", {
     email,
-    otp,
-    ...(name ? { name } : {}),
-    ...(password ? { password } : {}),
+    otp_code: otp,
   });
-  return { token: pickToken(body), user: pickUser(body, { email, name }) };
+  return { token: pickToken(body), user: pickUser(body, { email }) };
 }
 
 export async function authRegister({ name, email, password }) {

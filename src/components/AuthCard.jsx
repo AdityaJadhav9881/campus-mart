@@ -13,14 +13,7 @@ import { useAuth } from "../hooks/useAuth.js";
 import { useWarmup } from "../hooks/useWarmup.js";
 import WarmupBanner from "./WarmupBanner.jsx";
 
-const FALLBACK_OTP_STATUSES = new Set([404, 405, 500, 501, 502, 503, 504]);
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-function isOtpUnavailable(error) {
-  if (!(error instanceof ApiError)) return false;
-  if (error.status === 0) return true; /* network / still deploying */
-  return FALLBACK_OTP_STATUSES.has(error.status);
-}
 
 function friendlyError(error) {
   if (!error) return "";
@@ -29,7 +22,7 @@ function friendlyError(error) {
 }
 
 export default function AuthCard() {
-  const { signIn, sendOtp, verifyOtp, register } = useAuth();
+  const { signIn, sendOtp, resendOtp, verifyOtp } = useAuth();
 
   const [tab, setTab] = useState("signin");
   const [mode, setMode] = useState("form"); /* form | otp */
@@ -40,6 +33,7 @@ export default function AuthCard() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [resending, setResending] = useState(false);
 
   const warmup = useWarmup(submitting);
 
@@ -76,27 +70,33 @@ export default function AuthCard() {
 
   const handleSendOtp = async (event) => {
     event.preventDefault();
-    if (!name.trim() || !EMAIL_RE.test(email.trim()) || password.length < 6) {
-      setError("Add your name, a valid campus email, and a 6+ character password.");
+    if (!name.trim() || !EMAIL_RE.test(email.trim()) || password.length < 8) {
+      setError("Add your name, a valid campus email, and an 8+ character password.");
       return;
     }
     await run(async () => {
-      try {
-        await sendOtp({ email: email.trim() });
-        setMode("otp");
-        setNotice("We emailed you a 6-digit code. Enter it below to finish.");
-      } catch (otpError) {
-        if (!isOtpUnavailable(otpError)) throw otpError;
-        setNotice(
-          "Direct sign-up activated — creating your student account now."
-        );
-        await register({
-          name: name.trim(),
-          email: email.trim(),
-          password,
-        });
-      }
+      await sendOtp({
+        name: name.trim(),
+        email: email.trim(),
+        password,
+      });
+      setMode("otp");
+      setNotice(`We emailed a 6-digit verification code to ${email.trim()}.`);
     });
+  };
+
+  const handleResend = async () => {
+    setResending(true);
+    setError("");
+    setNotice("");
+    try {
+      await resendOtp({ email: email.trim() });
+      setNotice(`New verification code sent to ${email.trim()}.`);
+    } catch (caught) {
+      setError(friendlyError(caught));
+    } finally {
+      setResending(false);
+    }
   };
 
   const handleVerifyOtp = async (event) => {
@@ -109,8 +109,6 @@ export default function AuthCard() {
       verifyOtp({
         email: email.trim(),
         otp: otp.trim(),
-        name: name.trim(),
-        password,
       })
     );
   };
@@ -279,7 +277,7 @@ export default function AuthCard() {
               value={password}
               disabled={inputDisabled}
               onChange={(event) => setPassword(event.target.value)}
-              placeholder="6+ characters"
+              placeholder="8+ characters"
               className="input mt-2"
             />
           </div>
@@ -346,6 +344,18 @@ export default function AuthCard() {
               </>
             )}
           </button>
+
+          <div className="flex items-center justify-between text-xs px-1">
+            <span className="text-muted">Didn't receive the email?</span>
+            <button
+              type="button"
+              onClick={handleResend}
+              disabled={submitting || resending}
+              className="font-medium text-accent hover:underline disabled:opacity-50"
+            >
+              {resending ? "Sending code…" : "Resend code"}
+            </button>
+          </div>
 
           <button
             type="button"
