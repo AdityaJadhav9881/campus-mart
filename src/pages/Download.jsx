@@ -14,10 +14,10 @@ import { Link } from "../router/router.jsx";
 import AuthCard from "../components/AuthCard.jsx";
 import QrCode from "../components/QrCode.jsx";
 import { useAuth } from "../hooks/useAuth.js";
-import { appSpecs, installSteps } from "../data/site.js";
+import { appSpecs, installSteps, SUPPORT_EMAIL, SUPPORT_MAILTO } from "../data/site.js";
+import { trustOutOf5 } from "../lib/format.js";
 
 const APK_URL = import.meta.env.VITE_APK_DOWNLOAD_URL || "/campusmart-ai.apk";
-const SUPPORT_EMAIL = "martaicampus@gmail.com";
 
 const CHROME_TIP =
   "Tip: Open this page in Google Chrome (not an in-app browser like WhatsApp) and uninstall any older version of CampusMart from your phone before installing.";
@@ -30,8 +30,8 @@ function SupportNote() {
         <span className="font-medium text-ink">Need Help or Campus Support?</span>{" "}
         Our team is one email away — write to{" "}
         <a
-          href={`mailto:${SUPPORT_EMAIL}`}
-          className="font-medium text-accent transition-colors hover:text-accent-deep"
+          href={SUPPORT_MAILTO}
+          className="font-medium text-accent transition-colors hover:text-accent-deep hover:underline"
         >
           {SUPPORT_EMAIL}
         </a>{" "}
@@ -75,12 +75,23 @@ function useApkSize(url) {
 }
 
 function SignedInBar({ user, onSignOut }) {
+  const trust = trustOutOf5(user?.trust_score ?? 5.0);
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-positive/25 bg-positive-soft px-4 py-3">
-      <p className="min-w-0 text-[13px] leading-relaxed text-ink">
-        <span className="font-medium">Signed in as {user.name}</span>{" "}
-        <span className="text-muted">({user.email})</span>
-      </p>
+      <div className="min-w-0 flex items-center gap-2.5">
+        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-positive text-paper text-xs font-semibold">
+          ✓
+        </span>
+        <div className="min-w-0">
+          <p className="min-w-0 text-[13px] font-medium leading-tight text-ink">
+            {user?.name || "Verified Student"}
+            <span className="ml-2 inline-flex items-center rounded-full border border-positive/30 bg-card px-2 py-0.5 text-[11px] font-normal text-positive">
+              ★ {trust !== null ? trust.toFixed(1) : "5.0"} / 5 Verified Student
+            </span>
+          </p>
+          <p className="text-xs text-muted truncate">{user?.email}</p>
+        </div>
+      </div>
       <button
         type="button"
         onClick={onSignOut}

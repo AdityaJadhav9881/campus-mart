@@ -1,17 +1,25 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   BadgeCheck,
+  Bot,
   Camera,
   CheckCircle2,
+  CornerDownLeft,
   Loader2,
   RotateCcw,
   ScanLine,
+  Send,
   ShieldAlert,
   ShieldCheck,
+  Sparkles,
   TrendingUp,
   Upload,
+  User,
 } from "lucide-react";
 import { usePipeline } from "../hooks/usePipeline.js";
+import { useAuth } from "../hooks/useAuth.js";
+import { useLiveFeed } from "../hooks/useLiveFeed.js";
+import { askCampusMartAi } from "../api/client.js";
 import { sandboxConditions } from "../data/sandbox.js";
 import {
   classifyItem,
@@ -205,8 +213,212 @@ function Stepper({ step, running, steps }) {
   );
 }
 
+function AskCampusMartAiSection({ token, catalog, initialQuery = "" }) {
+  const [messages, setMessages] = useState([
+    {
+      role: "assistant",
+      content:
+        "Hi there! I am CampusMart AI, synced live with our campus marketplace and second-hand student benchmarks in India. Ask me about fair second-hand resale prices, deals under ₹500, or selling tips!",
+      source: "catalog",
+    },
+  ]);
+  const [input, setInput] = useState(initialQuery);
+  const [loading, setLoading] = useState(false);
+  const chatEndRef = useRef(null);
+
+  useEffect(() => {
+    if (initialQuery) {
+      setInput(initialQuery);
+    }
+  }, [initialQuery]);
+
+  const sampleQuestions = [
+    "What is a fair second-hand price for a Bose SoundLink Flex speaker?",
+    "Show me the best deals under ₹500",
+    "What should I pay for a Casio scientific calculator?",
+  ];
+
+  const handleSend = async (questionText) => {
+    const text = (questionText ?? input).trim();
+    if (!text || loading) return;
+
+    const userMessage = { role: "user", content: text };
+    const nextHistory = [...messages, userMessage];
+    setMessages(nextHistory);
+    setInput("");
+    setLoading(true);
+
+    try {
+      const response = await askCampusMartAi({
+        message: text,
+        history: messages.map((m) => ({ role: m.role, content: m.content })),
+        token,
+        catalog,
+      });
+
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content: response.reply,
+          source: response.source || "llm",
+        },
+      ]);
+    } catch {
+      setMessages((prev) => [
+        ...prev,
+        {
+          role: "assistant",
+          content:
+            "I couldn't reach the server right now. Try checking our live listings on the Marketplace page!",
+          source: "catalog",
+        },
+      ]);
+    } finally {
+      setLoading(false);
+      setTimeout(() => {
+        chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, 50);
+    }
+  };
+
+  return (
+    <section className="mt-8 card p-5 sm:p-7">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line pb-4">
+        <div className="flex items-center gap-3">
+          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-accent-soft text-accent">
+            <Sparkles className="h-5 w-5" aria-hidden="true" />
+          </span>
+          <div>
+            <h2 className="text-xl font-medium leading-tight">Ask CampusMart AI</h2>
+            <p className="mt-0.5 text-xs text-muted">
+              Live catalog-aware student assistant for fair second-hand pricing &amp; deals
+            </p>
+          </div>
+        </div>
+        <span className="inline-flex items-center gap-2 rounded-full border border-positive/30 bg-positive-soft px-3 py-1 text-xs font-medium text-positive">
+          <span className="live-dot h-1.5 w-1.5 rounded-full bg-positive" />
+          Live Assistant
+        </span>
+      </div>
+
+      {/* Suggested chips */}
+      <div className="mt-4 flex flex-wrap items-center gap-2">
+        <span className="text-xs font-medium text-muted">Try asking:</span>
+        {sampleQuestions.map((q) => (
+          <button
+            key={q}
+            type="button"
+            onClick={() => handleSend(q)}
+            className="rounded-full border border-line bg-sunken px-3 py-1 text-xs text-ink transition hover:border-accent hover:bg-card hover:text-accent"
+          >
+            {q}
+          </button>
+        ))}
+      </div>
+
+      {/* Message history */}
+      <div className="mt-5 space-y-3.5 max-h-[380px] overflow-y-auto scroll-slim rounded-xl border border-line bg-sunken/40 p-3 sm:p-4">
+        {messages.map((m, i) => {
+          const isAssistant = m.role === "assistant";
+          return (
+            <div
+              key={i}
+              className={`flex gap-3 text-[13.5px] leading-relaxed ${
+                isAssistant ? "items-start" : "items-start flex-row-reverse"
+              }`}
+            >
+              <span
+                className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-xs ${
+                  isAssistant
+                    ? "bg-ink text-paper"
+                    : "bg-accent text-paper font-semibold"
+                }`}
+              >
+                {isAssistant ? <Bot className="h-4 w-4" /> : <User className="h-4 w-4" />}
+              </span>
+
+              <div
+                className={`max-w-[85%] rounded-2xl px-4 py-3 ${
+                  isAssistant
+                    ? "border border-line bg-card text-ink shadow-[0_1px_2px_rgba(28,25,23,0.04)]"
+                    : "bg-accent text-paper shadow-sm"
+                }`}
+              >
+                <div className="whitespace-pre-line">{m.content}</div>
+                {isAssistant && m.source && (
+                  <div className="mt-2.5 flex items-center gap-1.5 text-[10.5px] text-faint">
+                    <span
+                      className={`h-1.5 w-1.5 rounded-full ${
+                        m.source === "llm" ? "bg-accent" : "bg-positive"
+                      }`}
+                    />
+                    {m.source === "llm"
+                      ? "Live Gemini LLM"
+                      : "Campus Catalog Benchmark"}
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+
+        {loading && (
+          <div className="flex items-center gap-3">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-ink text-paper">
+              <Bot className="h-4 w-4" />
+            </span>
+            <div className="flex items-center gap-2 rounded-2xl border border-line bg-card px-4 py-3 text-xs text-muted">
+              <Loader2 className="h-3.5 w-3.5 animate-spin text-accent" />
+              Thinking with campus catalog…
+            </div>
+          </div>
+        )}
+        <div ref={chatEndRef} />
+      </div>
+
+      {/* Input bar */}
+      <form
+        onSubmit={(e) => {
+          e.preventDefault();
+          handleSend();
+        }}
+        className="mt-4 flex items-center gap-2"
+      >
+        <div className="relative flex-1">
+          <input
+            type="text"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            disabled={loading}
+            placeholder="Type any campus buying or selling question…"
+            className="input pr-10"
+          />
+        </div>
+        <button
+          type="submit"
+          disabled={loading || !input.trim()}
+          className="btn btn-primary h-10 px-4 shrink-0"
+        >
+          {loading ? (
+            <Loader2 className="h-4 w-4 animate-spin" />
+          ) : (
+            <>
+              <Send className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Ask AI</span>
+            </>
+          )}
+        </button>
+      </form>
+    </section>
+  );
+}
+
 export default function Sandbox() {
+  const { products } = useLiveFeed();
+  const { token } = useAuth();
   const [title, setTitle] = useState("");
+  const [initialAiQuery, setInitialAiQuery] = useState("");
   const [ageYears, setAgeYears] = useState(1);
   const [conditionId, setConditionId] = useState("good");
   const [preview, setPreview] = useState(null);
@@ -214,6 +426,22 @@ export default function Sandbox() {
   const [result, setResult] = useState(null);
 
   const { step, running, done, run, reset } = usePipeline();
+
+  useEffect(() => {
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const itemParam = params.get("item") || params.get("title");
+      if (itemParam) {
+        setTitle(itemParam);
+      }
+      const queryParam = params.get("query");
+      if (queryParam) {
+        setInitialAiQuery(queryParam);
+      }
+    } catch {
+      /* ignore */
+    }
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -517,6 +745,13 @@ export default function Sandbox() {
             )}
           </section>
         </div>
+
+        {/* Live AI Assistant */}
+        <AskCampusMartAiSection
+          token={token}
+          catalog={products}
+          initialQuery={initialAiQuery}
+        />
       </div>
     </div>
   );

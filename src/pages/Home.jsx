@@ -1,9 +1,11 @@
+import { useState } from "react";
 import { ArrowRight, Check, Smartphone, Store } from "lucide-react";
 import { Link } from "../router/router.jsx";
 import { useLiveFeed } from "../hooks/useLiveFeed.js";
 import { useStats } from "../hooks/useStats.js";
 import { demoListings } from "../data/demoListings.js";
 import { conditionLabel, productPrice, rupees, trustOutOf5 } from "../lib/format.js";
+import ProductDetailModal from "../components/ProductDetailModal.jsx";
 
 const MODE_LABEL = {
   loading: "Checking campus activity…",
@@ -29,13 +31,25 @@ function Counter({ term, value }) {
   );
 }
 
-function PreviewRow({ product }) {
+function PreviewRow({ product, onOpen }) {
   const price = productPrice(product);
   const outOf5 = trustOutOf5(product.seller_trust_score);
 
   return (
-    <li className="flex items-center gap-3 py-3">
-      <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-line bg-sunken text-faint">
+    <li
+      role="button"
+      tabIndex={0}
+      aria-label={`View details for ${product.title}`}
+      onClick={() => onOpen(product)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          onOpen(product);
+        }
+      }}
+      className="group flex cursor-pointer items-center gap-3 rounded-xl px-2 py-2.5 transition hover:bg-sunken/80 focus:bg-sunken"
+    >
+      <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-line bg-sunken text-faint group-hover:border-line-strong transition">
         {product.image_url ? (
           <img src={product.image_url} alt="" className="h-full w-full object-cover" />
         ) : (
@@ -44,7 +58,7 @@ function PreviewRow({ product }) {
       </span>
 
       <span className="min-w-0 flex-1">
-        <span className="block truncate text-sm font-medium text-ink">
+        <span className="block truncate text-sm font-medium text-ink group-hover:text-accent transition-colors">
           {product.title}
         </span>
         <span className="mt-0.5 block text-xs text-muted">
@@ -65,6 +79,7 @@ function PreviewRow({ product }) {
 export default function Home() {
   const { products, online, loading, refresh } = useLiveFeed();
   const { listings, students, mode } = useStats({ products, online, loading });
+  const [selected, setSelected] = useState(null);
 
   const preview =
     products.length > 0 ? products.slice(0, 3) : demoListings.slice(0, 3);
@@ -169,7 +184,11 @@ export default function Home() {
 
             <ul className="mt-1 divide-y divide-line">
               {preview.map((product) => (
-                <PreviewRow key={product.id} product={product} />
+                <PreviewRow
+                  key={product.id}
+                  product={product}
+                  onOpen={setSelected}
+                />
               ))}
             </ul>
 
@@ -181,6 +200,13 @@ export default function Home() {
           </div>
         </aside>
       </div>
+
+      {selected && (
+        <ProductDetailModal
+          product={selected}
+          onClose={() => setSelected(null)}
+        />
+      )}
     </div>
   );
 }

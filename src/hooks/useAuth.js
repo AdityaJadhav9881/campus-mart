@@ -54,6 +54,7 @@ export function useAuth() {
         name: user?.name || user?.email || "Student",
         email: user?.email || "",
         id: user?.id ?? null,
+        trust_score: user?.trust_score ?? 5.0,
       },
     };
     writeStored(next);

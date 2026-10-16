@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { PackageSearch, Search, SlidersHorizontal, X } from "lucide-react";
+import { ArrowUpDown, PackageSearch, Search, SlidersHorizontal, X } from "lucide-react";
 import { useLiveFeed } from "../hooks/useLiveFeed.js";
 import { useWarmup } from "../hooks/useWarmup.js";
 import { demoListings } from "../data/demoListings.js";
@@ -7,6 +7,7 @@ import ProductCard from "../components/ProductCard.jsx";
 import ProductDetailModal from "../components/ProductDetailModal.jsx";
 import ApiStatusBadge from "../components/ApiStatusBadge.jsx";
 import WarmupBanner from "../components/WarmupBanner.jsx";
+import { productPrice, trustOutOf5 } from "../lib/format.js";
 
 function SkeletonCard() {
   return (
@@ -28,6 +29,7 @@ export default function Marketplace() {
   const { products, online, loading, refresh } = useLiveFeed();
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("All");
+  const [sortBy, setSortBy] = useState("featured");
   const [selected, setSelected] = useState(null);
   const warmup = useWarmup(loading);
 
@@ -44,21 +46,50 @@ export default function Marketplace() {
 
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase();
-    return source.filter((product) => {
+    const list = source.filter((product) => {
       if (category !== "All" && product.category !== category) return false;
       if (!needle) return true;
+      const tagsStr = Array.isArray(product.ai_tags) ? product.ai_tags.join(" ") : "";
+      const notesStr = product.ai_condition_notes || "";
       const haystack = `${product.title} ${product.description ?? ""} ${
         product.category ?? ""
-      }`.toLowerCase();
+      } ${tagsStr} ${notesStr}`.toLowerCase();
       return haystack.includes(needle);
     });
-  }, [source, query, category]);
 
-  const hasFilters = query.trim() !== "" || category !== "All";
+    return [...list].sort((a, b) => {
+      if (sortBy === "price-asc") {
+        return (productPrice(a) ?? 0) - (productPrice(b) ?? 0);
+      }
+      if (sortBy === "price-desc") {
+        return (productPrice(b) ?? 0) - (productPrice(a) ?? 0);
+      }
+      if (sortBy === "best-value") {
+        const getSavings = (p) => {
+          const l = productPrice(p);
+          const s = Number(p.suggested_price);
+          if (l > 0 && s > 0 && s >= l * 0.5 && s <= l * 2) {
+            return (s - l) / s;
+          }
+          return -1;
+        };
+        return getSavings(b) - getSavings(a);
+      }
+      if (sortBy === "trust-desc") {
+        const trustA = trustOutOf5(a.seller_trust_score) ?? 0;
+        const trustB = trustOutOf5(b.seller_trust_score) ?? 0;
+        return trustB - trustA;
+      }
+      return 0; // featured default
+    });
+  }, [source, query, category, sortBy]);
+
+  const hasFilters = query.trim() !== "" || category !== "All" || sortBy !== "featured";
 
   const clearFilters = () => {
     setQuery("");
     setCategory("All");
+    setSortBy("featured");
   };
 
   return (
@@ -85,7 +116,7 @@ export default function Marketplace() {
         </div>
 
         <div className="mx-auto mt-5 flex max-w-6xl flex-col gap-3 lg:flex-row lg:items-center">
-          <div className="relative lg:w-80">
+          <div className="relative lg:w-72">
             <Search
               className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-faint"
               aria-hidden="true"
@@ -94,7 +125,7 @@ export default function Marketplace() {
               type="search"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search listings — textbook, calculator…"
+              placeholder="Search — bose, calculus, lab kit…"
               aria-label="Search listings"
               className="input pl-10 pr-9"
             />
@@ -129,11 +160,32 @@ export default function Marketplace() {
             ))}
           </div>
 
-          <p className="shrink-0 text-xs tabular-nums text-faint lg:pl-2">
-            {loading
-              ? "Loading…"
-              : `${filtered.length} of ${source.length} listings`}
-          </p>
+          <div className="flex shrink-0 items-center justify-between gap-3 pt-1 sm:pt-0">
+            <div className="flex items-center gap-1.5">
+              <span className="text-xs text-faint shrink-0 flex items-center gap-1">
+                <ArrowUpDown className="h-3 w-3" aria-hidden="true" />
+                Sort:
+              </span>
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                aria-label="Sort listings"
+                className="h-8.5 rounded-lg border border-line bg-card px-2.5 text-xs font-medium text-ink outline-none transition hover:border-line-strong focus:border-accent"
+              >
+                <option value="featured">Featured</option>
+                <option value="price-asc">Price: Low to High</option>
+                <option value="price-desc">Price: High to Low</option>
+                <option value="best-value">Best Value vs AI Estimate</option>
+                <option value="trust-desc">Highest Seller Trust</option>
+              </select>
+            </div>
+
+            <p className="shrink-0 text-xs tabular-nums text-faint lg:pl-1">
+              {loading
+                ? "Loading…"
+                : `${filtered.length} of ${source.length}`}
+            </p>
+          </div>
         </div>
 
         {usingDemo && (

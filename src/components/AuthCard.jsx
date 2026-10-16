@@ -30,6 +30,7 @@ export default function AuthCard() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [otp, setOtp] = useState("");
+  const [fallbackOtp, setFallbackOtp] = useState("");
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -43,6 +44,7 @@ export default function AuthCard() {
     setError("");
     setNotice("");
     setOtp("");
+    setFallbackOtp("");
   };
 
   const run = async (action) => {
@@ -75,11 +77,14 @@ export default function AuthCard() {
       return;
     }
     await run(async () => {
-      await sendOtp({
+      const res = await sendOtp({
         name: name.trim(),
         email: email.trim(),
         password,
       });
+      if (res?.fallback_otp_code) {
+        setFallbackOtp(String(res.fallback_otp_code));
+      }
       setMode("otp");
       setNotice(`We emailed a 6-digit verification code to ${email.trim()}.`);
     });
@@ -90,7 +95,10 @@ export default function AuthCard() {
     setError("");
     setNotice("");
     try {
-      await resendOtp({ email: email.trim() });
+      const res = await resendOtp({ email: email.trim() });
+      if (res?.fallback_otp_code) {
+        setFallbackOtp(String(res.fallback_otp_code));
+      }
       setNotice(`New verification code sent to ${email.trim()}.`);
     } catch (caught) {
       setError(friendlyError(caught));
@@ -304,6 +312,37 @@ export default function AuthCard() {
 
       {tab === "signup" && mode === "otp" && (
         <form onSubmit={handleVerifyOtp} className="mt-5 space-y-4">
+          {fallbackOtp && (
+            <button
+              type="button"
+              onClick={() => {
+                setOtp(fallbackOtp);
+                run(() =>
+                  verifyOtp({
+                    email: email.trim(),
+                    otp: fallbackOtp,
+                  })
+                );
+              }}
+              className="group flex w-full flex-col gap-1 rounded-xl border border-amber-300 bg-amber-50/90 p-3.5 text-left transition hover:border-amber-400 hover:bg-amber-100/70"
+            >
+              <div className="flex items-center justify-between text-xs">
+                <span className="font-semibold text-amber-900">
+                  Instant Verification Code:{" "}
+                  <span className="font-mono tracking-wider font-bold text-amber-950">
+                    {fallbackOtp}
+                  </span>
+                </span>
+                <span className="font-medium text-amber-700 underline group-hover:text-amber-950">
+                  (Click to auto-fill)
+                </span>
+              </div>
+              <span className="text-[11.5px] text-amber-800/80">
+                Carrier email delivery delayed. Tap here to verify and unlock download immediately →
+              </span>
+            </button>
+          )}
+
           <div>
             <label htmlFor="auth-otp" className="text-[13px] font-medium text-ink">
               6-digit code

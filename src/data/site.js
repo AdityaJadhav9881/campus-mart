@@ -1,5 +1,9 @@
 /* Copy and structured content for the How-it-works and Download pages. */
 
+export const SUPPORT_EMAIL = "martaicampus@gmail.com";
+export const SUPPORT_MAILTO =
+  "mailto:martaicampus@gmail.com?subject=CampusMart%20AI%20Support%20Inquiry&body=Hi%20CampusMart%20Support%20Team,%0A%0AI%20need%20help%20with:";
+
 export const photoAngles = [
   {
     id: "front",

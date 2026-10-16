@@ -7,6 +7,7 @@ import {
   Package,
   ShieldCheck,
   Smartphone,
+  Sparkles,
   Star,
   X,
 } from "lucide-react";
@@ -325,18 +326,28 @@ export default function ProductDetailModal({ product, onClose }) {
           </div>
         </div>
 
-        {/* Footer CTA */}
+        {/* Footer CTAs */}
         <div className="border-t border-line bg-paper px-5 py-4 sm:px-6">
-          <Link
-            to="/download"
-            onClick={onClose}
-            className="btn btn-primary h-12 w-full"
-          >
-            <Smartphone className="h-4 w-4" aria-hidden="true" />
-            Get the App to Buy or Chat with Seller
-          </Link>
+          <div className="flex flex-col gap-2.5 sm:flex-row">
+            <Link
+              to="/download"
+              onClick={onClose}
+              className="btn btn-primary h-11 flex-1 text-[13px] sm:text-[13.5px]"
+            >
+              <Smartphone className="h-4 w-4 shrink-0" aria-hidden="true" />
+              Get the App to Chat with Seller
+            </Link>
+            <Link
+              to={`/sandbox?item=${encodeURIComponent(title)}&price=${listed ?? ""}&category=${encodeURIComponent(product?.category || "")}`}
+              onClick={onClose}
+              className="btn btn-secondary h-11 flex-1 text-[13px] sm:text-[13.5px]"
+            >
+              <Sparkles className="h-4 w-4 shrink-0 text-accent" aria-hidden="true" />
+              Ask CampusMart AI About This Item
+            </Link>
+          </div>
           <p className="mt-2 text-center text-[11.5px] text-faint">
-            Buying and chat live inside the Android app for verified students.
+            Verified campus exchange · Chat and instant payments live in the Android app.
           </p>
         </div>
       </div>

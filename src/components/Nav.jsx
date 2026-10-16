@@ -41,9 +41,21 @@ export default function Nav() {
         >
           <span
             aria-hidden="true"
-            className="flex h-8 w-8 items-center justify-center rounded-lg bg-ink font-display text-base text-paper"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[9px] bg-[#141413] shadow-sm transition"
           >
-            C
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              className="h-4.5 w-4.5 text-[#FAF9F6]"
+            >
+              <path
+                d="M16 8.5a5.5 5.5 0 1 0 0 7"
+                stroke="currentColor"
+                strokeWidth="2.4"
+                strokeLinecap="round"
+              />
+              <circle cx="17.5" cy="7.5" r="1.5" fill="#2563eb" />
+            </svg>
           </span>
           <span className="font-display text-lg leading-none tracking-tight text-ink">
             CampusMart

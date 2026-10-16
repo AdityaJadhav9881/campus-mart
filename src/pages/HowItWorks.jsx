@@ -10,9 +10,13 @@ import {
   Wrench,
 } from "lucide-react";
 import { Link } from "../router/router.jsx";
-import { photoAngles, readBack, verificationSteps } from "../data/site.js";
-
-const SUPPORT_EMAIL = "martaicampus@gmail.com";
+import {
+  photoAngles,
+  readBack,
+  verificationSteps,
+  SUPPORT_EMAIL,
+  SUPPORT_MAILTO,
+} from "../data/site.js";
 
 const STEP_ICONS = [Camera, ScanEye, Tag, ShieldCheck];
 
@@ -105,8 +109,8 @@ export default function HowItWorks() {
               <span className="font-medium text-ink">Need Help or Campus Support?</span>{" "}
               Our team is one email away — write to{" "}
               <a
-                href={`mailto:${SUPPORT_EMAIL}`}
-                className="font-medium text-accent transition-colors hover:text-accent-deep"
+                href={SUPPORT_MAILTO}
+                className="font-medium text-accent transition-colors hover:text-accent-deep hover:underline"
               >
                 {SUPPORT_EMAIL}
               </a>{" "}

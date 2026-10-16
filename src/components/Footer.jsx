@@ -1,7 +1,6 @@
 import { Mail } from "lucide-react";
 import { Link } from "../router/router.jsx";
-
-const SUPPORT_EMAIL = "martaicampus@gmail.com";
+import { SUPPORT_EMAIL, SUPPORT_MAILTO } from "../data/site.js";
 
 export default function Footer() {
   return (
@@ -14,8 +13,8 @@ export default function Footer() {
         <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1 sm:justify-end text-center sm:text-right">
           <span>Need help? Contact Support:</span>
           <a
-            href={`mailto:${SUPPORT_EMAIL}`}
-            className="inline-flex items-center gap-1 font-medium text-accent transition-colors hover:text-accent-deep"
+            href={SUPPORT_MAILTO}
+            className="inline-flex items-center gap-1 font-medium text-accent transition-colors hover:text-accent-deep hover:underline"
           >
             <Mail className="h-3 w-3 shrink-0" aria-hidden="true" />
             {SUPPORT_EMAIL}
