@@ -25,7 +25,7 @@ const TITLES = {
   "/": "CampusMart AI — Buy and sell on your own campus",
   "/marketplace": "Live Campus Marketplace — CampusMart AI",
   "/how-it-works": "Four-photo AI verification — CampusMart AI",
-  "/sandbox": "AI price & listing sandbox — CampusMart AI",
+  "/sandbox": "Price estimator — CampusMart AI",
   "/download": "Download the Android app — CampusMart AI",
 };
 

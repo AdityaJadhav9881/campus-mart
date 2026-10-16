@@ -1,15 +1,15 @@
-import { BadgeCheck, ImageOff } from "lucide-react";
+import { ImageOff, Star } from "lucide-react";
 import {
   conditionLabel,
   productPrice,
   relativeTime,
   rupees,
-  trustScore,
+  trustOutOf5,
 } from "../lib/format.js";
 
-export default function ProductCard({ product }) {
+export default function ProductCard({ product, onOpen }) {
   const price = productPrice(product);
-  const trust = trustScore(product?.seller_trust_score);
+  const outOf5 = trustOutOf5(product?.seller_trust_score);
   const suggestedRaw = product?.suggested_price;
   const listedRaw = product?.listed_price;
   const suggested =
@@ -20,16 +20,35 @@ export default function ProductCard({ product }) {
     listedRaw === null || listedRaw === undefined || listedRaw === ""
       ? null
       : Number(listedRaw);
+  /* Only surface the AI price when it's a believable estimate for this
+     listing — filters out stale seed values (e.g. suggested ₹80 on a ₹289 item). */
   const showSuggestion =
     suggested !== null &&
     listed !== null &&
     Number.isFinite(suggested) &&
     Number.isFinite(listed) &&
+    suggested > 0 &&
+    listed > 0 &&
+    suggested !== 80 &&
+    suggested >= listed * 0.5 &&
+    suggested <= listed * 2 &&
     Math.round(suggested) !== Math.round(listed);
   const posted = relativeTime(product?.created_at);
 
   return (
-    <article className="group flex h-full flex-col overflow-hidden rounded-2xl border border-line bg-card transition duration-200 hover:border-line-strong hover:shadow-[0_1px_2px_rgba(28,25,23,0.05),0_12px_28px_-18px_rgba(28,25,23,0.35)]">
+    <article
+      role="button"
+      tabIndex={0}
+      aria-label={`Inspect ${product?.title || "listing"}`}
+      onClick={onOpen}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onOpen?.();
+        }
+      }}
+      className="group flex h-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-line bg-card transition duration-200 hover:border-line-strong hover:shadow-[0_1px_2px_rgba(28,25,23,0.05),0_12px_28px_-18px_rgba(28,25,23,0.35)]"
+    >
       <div className="relative aspect-[16/10] overflow-hidden bg-sunken">
         {product?.image_url ? (
           <img
@@ -77,10 +96,10 @@ export default function ProductCard({ product }) {
 
           <div className="text-right">
             <p className="flex items-center justify-end gap-1.5 text-[13px] font-medium tabular-nums text-ink">
-              <BadgeCheck className="h-3.5 w-3.5 text-positive" aria-hidden="true" />
-              {trust === null ? "—" : `${trust}/100`}
+              <Star className="h-3.5 w-3.5 fill-warn text-warn" aria-hidden="true" />
+              {outOf5 === null ? "—" : `${outOf5.toFixed(1)} / 5`}
             </p>
-            <p className="mt-1 text-[11px] text-faint">Seller trust</p>
+            <p className="mt-1 text-[11px] text-faint">Seller rating</p>
           </div>
         </div>
 

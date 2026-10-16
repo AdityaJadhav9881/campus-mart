@@ -44,11 +44,11 @@ export function mapProductToFeedItem(product) {
     suggestedPrice: price,
     listedPrice: product.listed_price ?? null,
     confidence: hasTrust
-      ? Math.min(1, Math.max(0, trust / 100))
+      ? Math.min(1, Math.max(0, trust <= 5 ? trust / 5 : trust / 100))
       : null,
     sellerTrustScore: hasTrust ? trust : null,
     clearance: "CLEARED",
-    clearanceNote: "Live listing synced from the campus backend.",
+    clearanceNote: "Verified listing from your campus.",
     flaggedTerms: [],
     verified: true,
     thumbnail: product.image_url || null,

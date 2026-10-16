@@ -4,6 +4,7 @@ import { useLiveFeed } from "../hooks/useLiveFeed.js";
 import { useWarmup } from "../hooks/useWarmup.js";
 import { demoListings } from "../data/demoListings.js";
 import ProductCard from "../components/ProductCard.jsx";
+import ProductDetailModal from "../components/ProductDetailModal.jsx";
 import ApiStatusBadge from "../components/ApiStatusBadge.jsx";
 import WarmupBanner from "../components/WarmupBanner.jsx";
 
@@ -27,6 +28,7 @@ export default function Marketplace() {
   const { products, online, loading, refresh } = useLiveFeed();
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("All");
+  const [selected, setSelected] = useState(null);
   const warmup = useWarmup(loading);
 
   const usingDemo = !loading && !online && products.length === 0;
@@ -69,8 +71,8 @@ export default function Marketplace() {
               What students are selling right now
             </h1>
             <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted">
-              Every row below comes from the campus backend, with the AI
-              condition grade, a ₹ price and the seller's trust score.
+              Browse verified pre-owned textbooks, electronics, and hostel
+              essentials from students on your campus.
             </p>
           </div>
 
@@ -136,8 +138,8 @@ export default function Marketplace() {
 
         {usingDemo && (
           <p className="mx-auto mt-4 max-w-6xl rounded-xl border border-warn/25 bg-warn-soft px-4 py-3 text-[13px] leading-relaxed text-warn">
-            The backend could not be reached, so these are sample listings. Tap
-            refresh once the API is back to see live inventory.
+            Showing popular items while the marketplace reconnects. Tap refresh
+            in a moment to see everything live on campus.
           </p>
         )}
       </header>
@@ -175,11 +177,19 @@ export default function Marketplace() {
         ) : (
           <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
             {filtered.map((product) => (
-              <ProductCard key={product.id ?? product.title} product={product} />
+              <ProductCard
+                key={product.id ?? product.title}
+                product={product}
+                onOpen={() => setSelected(product)}
+              />
             ))}
           </div>
         )}
       </div>
+
+      {selected && (
+        <ProductDetailModal product={selected} onClose={() => setSelected(null)} />
+      )}
     </div>
   );
 }

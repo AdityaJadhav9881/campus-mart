@@ -3,13 +3,13 @@ import { Link } from "../router/router.jsx";
 import { useLiveFeed } from "../hooks/useLiveFeed.js";
 import { useStats } from "../hooks/useStats.js";
 import { demoListings } from "../data/demoListings.js";
-import { conditionLabel, productPrice, rupees, trustScore } from "../lib/format.js";
+import { conditionLabel, productPrice, rupees, trustOutOf5 } from "../lib/format.js";
 
 const MODE_LABEL = {
-  loading: "Checking the database…",
-  live: "Live from the database",
-  estimate: "Live listings · students estimated",
-  demo: "Sample data",
+  loading: "Checking campus activity…",
+  live: "Live Marketplace",
+  estimate: "Updated in real time",
+  demo: "Popular right now",
 };
 
 const PROMISES = [
@@ -31,7 +31,7 @@ function Counter({ term, value }) {
 
 function PreviewRow({ product }) {
   const price = productPrice(product);
-  const trust = trustScore(product.seller_trust_score);
+  const outOf5 = trustOutOf5(product.seller_trust_score);
 
   return (
     <li className="flex items-center gap-3 py-3">
@@ -49,8 +49,8 @@ function PreviewRow({ product }) {
         </span>
         <span className="mt-0.5 block text-xs text-muted">
           {conditionLabel(product.condition)}
-          {trust !== null ? (
-            <span className="text-faint"> · trust {trust}/100</span>
+          {outOf5 !== null ? (
+            <span className="text-faint"> · ★ {outOf5.toFixed(1)} / 5</span>
           ) : null}
         </span>
       </span>
@@ -109,11 +109,6 @@ export default function Home() {
               </li>
             ))}
           </ul>
-
-          <p className="mt-8 max-w-md text-[13px] leading-relaxed text-faint">
-            A quick look at the live database, then head straight to the
-            listings.
-          </p>
         </section>
 
         {/* Live counters + previews */}
@@ -121,7 +116,7 @@ export default function Home() {
           <div className="card p-5">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <p className="text-sm font-medium text-ink">
-                Straight from the database
+                Campus Activity
               </p>
               <span
                 className={`inline-flex items-center gap-2 rounded-full border px-2.5 py-1 text-[11px] font-medium ${
@@ -149,11 +144,7 @@ export default function Home() {
               <Counter term="Verified students" value={students} />
             </dl>
 
-            <div className="mt-4 flex items-center justify-between gap-3 border-t border-line pt-3">
-              <p className="text-xs text-faint">
-                Counts come from <code className="text-ink-soft">GET /products/</code>{" "}
-                and the stats endpoint.
-              </p>
+            <div className="mt-4 flex items-center justify-end gap-3 border-t border-line pt-3">
               <button
                 type="button"
                 onClick={refresh}
@@ -184,8 +175,8 @@ export default function Home() {
 
             <p className="mt-2 text-[11px] text-faint">
               {products.length > 0
-                ? "Synced live from the campus backend."
-                : "Backend unreachable — showing sample listings."}
+                ? "Recently posted by verified students."
+                : "Showing popular items while we reconnect."}
             </p>
           </div>
         </aside>

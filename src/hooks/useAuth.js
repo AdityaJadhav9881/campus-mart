@@ -9,12 +9,6 @@ import {
 const STORAGE_KEY = "campusmart.auth.v1";
 const SYNC_EVENT = "campusmart:auth-changed";
 
-export const DEMO_STUDENT = {
-  name: "Aditya Jadhav",
-  email: "aditya.jadhav@campus.edu",
-  password: "password123",
-};
-
 function readStored() {
   try {
     const raw = window.localStorage.getItem(STORAGE_KEY);

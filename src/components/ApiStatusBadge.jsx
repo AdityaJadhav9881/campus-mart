@@ -8,12 +8,12 @@ export default function ApiStatusBadge({
   className = "",
 }) {
   const label = loading
-    ? "Checking the backend…"
+    ? "Checking the marketplace…"
     : demo
-      ? "Sample listings"
+      ? "Popular items"
       : online
-        ? "Connected to the live database"
-        : "Backend unreachable";
+        ? "Live Marketplace"
+        : "Reconnecting…";
 
   const tone = loading
     ? "text-faint"

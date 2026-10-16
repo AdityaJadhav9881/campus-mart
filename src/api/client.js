@@ -84,6 +84,25 @@ export async function checkApiHealth() {
   }
 }
 
+function normalizeImageUrls(raw) {
+  const urls = Array.isArray(raw?.image_urls)
+    ? raw.image_urls.filter((url) => typeof url === "string" && url.trim() !== "")
+    : [];
+  if (urls.length > 0) return urls.slice(0, 8);
+  if (typeof raw?.image_url === "string" && raw.image_url.trim() !== "") {
+    return [raw.image_url];
+  }
+  return [];
+}
+
+function normalizeTags(raw) {
+  const tags = Array.isArray(raw?.ai_tags) ? raw.ai_tags : [];
+  return tags
+    .filter((tag) => typeof tag === "string" && tag.trim() !== "")
+    .map((tag) => tag.trim())
+    .slice(0, 12);
+}
+
 function normalizeProduct(raw) {
   return {
     id: raw?.id ?? null,
@@ -92,6 +111,14 @@ function normalizeProduct(raw) {
     category: raw?.category ?? "",
     condition: raw?.condition ?? "",
     image_url: raw?.image_url ?? null,
+    image_urls: normalizeImageUrls(raw),
+    ai_tags: normalizeTags(raw),
+    ai_condition_notes:
+      typeof raw?.ai_condition_notes === "string" ? raw.ai_condition_notes : null,
+    seller_name:
+      typeof raw?.seller_name === "string" && raw.seller_name.trim() !== ""
+        ? raw.seller_name.trim()
+        : null,
     listed_price: raw?.listed_price ?? null,
     suggested_price: raw?.suggested_price ?? null,
     seller_trust_score: raw?.seller_trust_score ?? null,
@@ -214,7 +241,7 @@ function messageFrom(body, fallback) {
 
 async function postJson(path, payload, { retries = 1 } = {}) {
   if (!NETWORK_ENABLED) {
-    throw new ApiError("The campus backend is not configured for this build.");
+    throw new ApiError("The campus network is not configured for this build.");
   }
 
   let response;

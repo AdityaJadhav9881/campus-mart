@@ -4,7 +4,7 @@ import { Link } from "../router/router.jsx";
 const SUGGESTIONS = [
   { to: "/marketplace", label: "Live marketplace" },
   { to: "/how-it-works", label: "How verification works" },
-  { to: "/sandbox", label: "AI sandbox" },
+  { to: "/sandbox", label: "Price estimator" },
   { to: "/download", label: "Download the app" },
 ];
 

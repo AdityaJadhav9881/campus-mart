@@ -23,24 +23,21 @@ import { rupees } from "../lib/format.js";
 const AGENT_STEPS = [
   {
     id: 1,
-    label: "Listing agent",
-    tech: "Vision · YOLO",
+    label: "Photo & Category Check",
     icon: ScanLine,
-    detail: "Reads the item and assigns a category.",
+    detail: "Recognises the item and sorts it into the right category.",
   },
   {
     id: 2,
-    label: "Price agent",
-    tech: "Regression · campus data",
+    label: "Campus Market Value",
     icon: TrendingUp,
-    detail: "Grades condition and suggests a ₹ resale price.",
+    detail: "Checks the condition and suggests a fair ₹ price.",
   },
   {
     id: 3,
-    label: "Trust agent",
-    tech: "Regex · NLP",
+    label: "Safety Check",
     icon: ShieldCheck,
-    detail: "Scans the listing text for scam signals.",
+    detail: "Scans the listing for scammy or unsafe wording.",
   },
 ];
 
@@ -188,7 +185,6 @@ function Stepper({ step, running, steps }) {
             <div className="min-w-0 flex-1 pb-1">
               <div className="flex flex-wrap items-baseline gap-x-2.5 gap-y-1">
                 <span className="text-sm font-medium text-ink">{agent.label}</span>
-                <span className="text-[11px] text-faint">{agent.tech}</span>
               </div>
               <p className="mt-1 text-[13px] leading-relaxed text-muted">
                 {isDone && agent.result ? agent.result : agent.detail}
@@ -239,13 +235,13 @@ export default function Sandbox() {
   const stepsWithResults = useMemo(() => {
     if (!done && step === 0) return AGENT_STEPS;
     const results = {
-      1: `Classified as ${evaluate.category}.`,
-      2: `Suggested ${rupees(evaluate.suggestedPrice)} · ${Math.round(
+      1: `Sorted into ${evaluate.category}.`,
+      2: `About ${rupees(evaluate.suggestedPrice)} · ${Math.round(
         evaluate.confidence * 100
       )}% confidence.`,
       3: evaluate.flagged.length
         ? `Flagged: ${evaluate.flagged.join(", ")}. Clearance: ${evaluate.clearance}.`
-        : "No prohibited terms. Clearance: CLEARED.",
+        : "Nothing unsafe found. Clearance: CLEARED.",
     };
     return AGENT_STEPS.map((agent) => ({ ...agent, result: results[agent.id] }));
   }, [done, step, evaluate]);
@@ -276,7 +272,7 @@ export default function Sandbox() {
 
   const handleRun = () => {
     if (title.trim().length < 2) {
-      setError("Add an item title so the agents have something to read.");
+      setError("Add an item name so we have something to estimate.");
       return;
     }
     setError("");
@@ -301,14 +297,14 @@ export default function Sandbox() {
       <div className="mx-auto max-w-6xl px-5 py-8 sm:px-8">
         <header className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
           <div className="min-w-0">
-            <p className="eyebrow">Interactive sandbox</p>
+            <p className="eyebrow">Price estimator</p>
             <h1 className="mt-2 text-3xl leading-tight sm:text-4xl">
-              Run the AI pipeline yourself
+              Check what your item is worth
             </h1>
             <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted">
-              Describe an item the way you would in the app. The three agents
-              classify it, price it in ₹ and check it for scam signals — no
-              account, no upload, nothing stored.
+              Tell us what you want to sell and we'll suggest a fair campus
+              price in seconds. No sign-up needed, and nothing leaves your
+              device.
             </p>
           </div>
 
@@ -317,7 +313,7 @@ export default function Sandbox() {
               aria-hidden="true"
               className="live-dot h-1.5 w-1.5 rounded-full bg-positive"
             />
-            Runs in your browser
+            Free · no sign-up
           </span>
         </header>
 
@@ -411,7 +407,7 @@ export default function Sandbox() {
                 ) : (
                   <>
                     <ScanLine className="h-4 w-4" aria-hidden="true" />
-                    Run AI pipeline
+                    Estimate my price
                   </>
                 )}
               </button>
@@ -428,21 +424,21 @@ export default function Sandbox() {
             </div>
 
             <p className="mt-4 text-xs leading-relaxed text-faint">
-              Tip: add “cash only” or “off-campus only” to the title and watch
-              the trust agent flag it.
+              Tip: try words like “cash only” or “off-campus only” in the title
+              and watch the safety check flag them.
             </p>
           </section>
 
           {/* Pipeline + result */}
           <section className="card p-5 sm:p-6">
             <div className="flex items-center justify-between gap-3 border-b border-line pb-3">
-              <span className="text-[13px] font-medium text-ink">Agent pipeline</span>
+              <span className="text-[13px] font-medium text-ink">How it works</span>
               <span
                 className={`text-[12px] font-medium ${
                   done ? "text-positive" : running ? "text-ink" : "text-faint"
                 }`}
               >
-                {done ? "Complete" : running ? `Step ${step} of 3` : "Idle"}
+                {done ? "Complete" : running ? `Step ${step} of 3` : "Ready when you are"}
               </span>
             </div>
 
@@ -456,7 +452,7 @@ export default function Sandbox() {
               <div className="mt-5 rounded-xl border border-positive/25 bg-positive-soft p-4">
                 <p className="flex items-center gap-2 text-sm font-medium text-positive">
                   <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
-                  Draft listing ready
+                  Price estimate ready
                 </p>
 
                 <div className="mt-3 flex flex-wrap items-end justify-between gap-3">
@@ -502,8 +498,9 @@ export default function Sandbox() {
                 </div>
 
                 <p className="mt-3 text-[12px] leading-relaxed text-muted">
-                  In the app the same three checks run over your four photos —
-                  you approve the price, then it goes live for your campus.
+                  In the app, snap four photos of your item — the same checks
+                  give you a final price you can approve, then it goes live for
+                  your campus.
                 </p>
               </div>
             ) : (
@@ -513,9 +510,8 @@ export default function Sandbox() {
                 </p>
                 <p className="mt-1.5 text-[13px] leading-relaxed text-muted">
                   Fill in an item on the left and press{" "}
-                  <span className="font-medium text-ink">Run AI pipeline</span> to
-                  see the category, the suggested ₹ price and the security
-                  clearance.
+                  <span className="font-medium text-ink">Estimate my price</span>{" "}
+                  to see the category, a fair ₹ price and the safety check.
                 </p>
               </div>
             )}

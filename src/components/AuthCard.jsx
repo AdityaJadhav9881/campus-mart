@@ -6,11 +6,10 @@ import {
   LogIn,
   MailCheck,
   ShieldCheck,
-  Sparkles,
   UserPlus,
 } from "lucide-react";
 import { ApiError } from "../api/client.js";
-import { DEMO_STUDENT, useAuth } from "../hooks/useAuth.js";
+import { useAuth } from "../hooks/useAuth.js";
 import { useWarmup } from "../hooks/useWarmup.js";
 import WarmupBanner from "./WarmupBanner.jsx";
 
@@ -66,16 +65,6 @@ export default function AuthCard() {
     }
   };
 
-  const handleDemo = () => {
-    setTab("signin");
-    setMode("form");
-    setError("");
-    setNotice("");
-    setName(DEMO_STUDENT.name);
-    setEmail(DEMO_STUDENT.email);
-    setPassword(DEMO_STUDENT.password);
-  };
-
   const handleSignIn = async (event) => {
     event.preventDefault();
     if (!EMAIL_RE.test(email.trim()) || password.length < 4) {
@@ -99,7 +88,7 @@ export default function AuthCard() {
       } catch (otpError) {
         if (!isOtpUnavailable(otpError)) throw otpError;
         setNotice(
-          "Email OTP is still deploying on the backend — creating your account directly instead."
+          "Direct sign-up activated — creating your student account now."
         );
         await register({
           name: name.trim(),
@@ -242,20 +231,6 @@ export default function AuthCard() {
               </>
             )}
           </button>
-
-          <button
-            type="button"
-            onClick={handleDemo}
-            disabled={inputDisabled}
-            className="btn btn-secondary w-full"
-          >
-            <Sparkles className="h-4 w-4 text-accent" aria-hidden="true" />
-            Use Demo Student Account
-          </button>
-
-          <p className="text-center text-[11.5px] text-faint">
-            {DEMO_STUDENT.email} · for evaluators
-          </p>
         </form>
       )}
 
@@ -272,7 +247,7 @@ export default function AuthCard() {
               value={name}
               disabled={inputDisabled}
               onChange={(event) => setName(event.target.value)}
-              placeholder="e.g. Aditya Jadhav"
+              placeholder="e.g. Rahul Sharma"
               className="input mt-2"
             />
           </div>

@@ -54,7 +54,7 @@ export const readBack = [
   { label: "Condition grade", value: "Good", note: "Light edge wear, spine intact" },
   { label: "Suggested resale", value: "₹289 – ₹330", note: "Based on campus demand this month" },
   { label: "Listing text", value: "Written for you", note: "Title, edition and notes included" },
-  { label: "Seller trust", value: "93 / 100", note: "Verified campus email, 12 past trades" },
+  { label: "Seller trust", value: "★ 4.9 / 5", note: "Verified campus email, 12 past trades" },
 ];
 
 export const installSteps = [
@@ -76,10 +76,8 @@ export const installSteps = [
 ];
 
 export const appSpecs = [
-  { label: "Platform", value: "Android 5.0 (API 21) and newer" },
-  { label: "Built with", value: "Flutter 3.x" },
-  { label: "Version", value: "v1.0.0 release build" },
-  { label: "Install source", value: "Direct APK — no Play Store needed" },
-  { label: "Signature", value: "Signed by Infinity Crew" },
-  { label: "Offline", value: "Saved listings readable without a network" },
+  { label: "Compatibility", value: "Works on all Android phones" },
+  { label: "Verification", value: "Campus Email OTP Verified" },
+  { label: "Zero Fees", value: "0% commission on student sales" },
+  { label: "Safety", value: "AI-verified photos & fair ₹ pricing" },
 ];

@@ -3,6 +3,7 @@ import {
   Camera,
   Check,
   Copy,
+  Info,
   ScanEye,
   ShieldCheck,
   Tag,
@@ -10,6 +11,8 @@ import {
 } from "lucide-react";
 import { Link } from "../router/router.jsx";
 import { photoAngles, readBack, verificationSteps } from "../data/site.js";
+
+const SUPPORT_EMAIL = "martaicampus@gmail.com";
 
 const STEP_ICONS = [Camera, ScanEye, Tag, ShieldCheck];
 
@@ -94,6 +97,21 @@ export default function HowItWorks() {
             <Link to="/marketplace" className="btn btn-secondary">
               See verified listings
             </Link>
+          </div>
+
+          <div className="mt-8 flex items-start gap-3 rounded-xl border border-line bg-card px-4 py-3.5">
+            <Info className="mt-0.5 h-4 w-4 shrink-0 text-accent" aria-hidden="true" />
+            <p className="text-[13px] leading-relaxed text-muted">
+              <span className="font-medium text-ink">Need Help or Campus Support?</span>{" "}
+              Our team is one email away — write to{" "}
+              <a
+                href={`mailto:${SUPPORT_EMAIL}`}
+                className="font-medium text-accent transition-colors hover:text-accent-deep"
+              >
+                {SUPPORT_EMAIL}
+              </a>{" "}
+              and we'll help with verification, listing, or account questions.
+            </p>
           </div>
         </section>
 

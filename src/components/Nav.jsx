@@ -7,7 +7,7 @@ const LINKS = [
   { to: "/", label: "Home" },
   { to: "/marketplace", label: "Marketplace" },
   { to: "/how-it-works", label: "How it works" },
-  { to: "/sandbox", label: "Sandbox" },
+  { to: "/sandbox", label: "Price Estimator" },
   { to: "/download", label: "Download" },
 ];
 

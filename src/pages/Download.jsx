@@ -17,9 +17,29 @@ import { useAuth } from "../hooks/useAuth.js";
 import { appSpecs, installSteps } from "../data/site.js";
 
 const APK_URL = import.meta.env.VITE_APK_DOWNLOAD_URL || "/campusmart-ai.apk";
+const SUPPORT_EMAIL = "martaicampus@gmail.com";
 
 const CHROME_TIP =
   "Tip: Open this page in Google Chrome (not an in-app browser like WhatsApp) and uninstall any older version of CampusMart from your phone before installing.";
+
+function SupportNote() {
+  return (
+    <div className="mt-6 flex items-start gap-3 rounded-xl border border-line bg-card px-4 py-3.5">
+      <Info className="mt-0.5 h-4 w-4 shrink-0 text-accent" aria-hidden="true" />
+      <p className="text-[13px] leading-relaxed text-muted">
+        <span className="font-medium text-ink">Need Help or Campus Support?</span>{" "}
+        Our team is one email away — write to{" "}
+        <a
+          href={`mailto:${SUPPORT_EMAIL}`}
+          className="font-medium text-accent transition-colors hover:text-accent-deep"
+        >
+          {SUPPORT_EMAIL}
+        </a>{" "}
+        and we'll help with installs, sign-in or listing questions.
+      </p>
+    </div>
+  );
+}
 
 function useApkSize(url) {
   const [size, setSize] = useState(null);
@@ -193,6 +213,8 @@ export default function Download() {
               </div>
             </div>
           )}
+
+          <SupportNote />
         </section>
 
         {/* Auth card (locked) or QR + install steps (unlocked) */}

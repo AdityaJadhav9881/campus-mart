@@ -24,11 +24,20 @@ export function conditionLabel(value) {
   return CONDITION_LABELS[key] ?? String(value).trim();
 }
 
-export function trustScore(value) {
+/* Backend trust scores arrive on a 0.0–5.0 scale (e.g. 4.9). Legacy seed
+   rows used 0–100; anything above 5 is converted. Always display as X / 5. */
+export function trustOutOf5(value) {
   if (value === null || value === undefined || value === "") return null;
   const score = Number(value);
   if (!Number.isFinite(score)) return null;
-  return Math.round(Math.min(100, Math.max(0, score)));
+  const normalized = score <= 5 ? score : score / 20;
+  const clamped = Math.min(5, Math.max(0, normalized));
+  return Math.round(clamped * 10) / 10;
+}
+
+export function trustScore(value) {
+  const outOf5 = trustOutOf5(value);
+  return outOf5 === null ? null : `★ ${outOf5.toFixed(1)} / 5`;
 }
 
 export function productPrice(product) {
