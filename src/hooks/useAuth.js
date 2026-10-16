@@ -12,7 +12,7 @@ const SYNC_EVENT = "campusmart:auth-changed";
 export const DEMO_STUDENT = {
   name: "Aditya Jadhav",
   email: "aditya.jadhav@campus.edu",
-  password: "Campus@123",
+  password: "password123",
 };
 
 function readStored() {
