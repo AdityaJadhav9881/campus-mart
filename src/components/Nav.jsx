@@ -125,6 +125,7 @@ export default function Nav() {
         </Link>
 
         <button
+          ref={closeRef}
           type="button"
           className="ml-auto flex h-10 w-10 items-center justify-center rounded-lg text-ink transition-colors duration-150 hover:bg-sunken md:hidden sm:ml-0"
           aria-expanded={open}

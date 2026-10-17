@@ -56,7 +56,9 @@ const ANGLES = [
 
 export default function HeroGraphic() {
   const [activeAngleIndex, setActiveAngleIndex] = useState(0);
+  const [failedImages, setFailedImages] = useState({});
   const active = ANGLES[activeAngleIndex];
+  const isFailed = failedImages[active.id];
 
   return (
     <div className="relative mx-auto w-full max-w-lg select-none">
@@ -85,11 +87,22 @@ export default function HeroGraphic() {
 
         {/* Viewfinder Image Stage */}
         <div className="relative aspect-[16/11] w-full overflow-hidden bg-ink/95">
-          <img
-            src={active.image}
-            alt={active.name}
-            className="h-full w-full object-cover opacity-90 transition-all duration-500"
-          />
+          {!isFailed ? (
+            <img
+              src={active.image}
+              alt={active.name}
+              onError={() =>
+                setFailedImages((prev) => ({ ...prev, [active.id]: true }))
+              }
+              className="h-full w-full object-cover opacity-90 transition-all duration-500"
+            />
+          ) : (
+            <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-stone-900 via-stone-800 to-stone-950 p-6 text-center text-paper">
+              <span className="font-mono text-xs text-paper/70 tracking-widest uppercase">
+                [4-Angle Reticle Active · {active.name}]
+              </span>
+            </div>
+          )}
 
           {/* Viewfinder Reticle Overlays */}
           <div className="pointer-events-none absolute inset-0 p-4">

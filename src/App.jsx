@@ -6,6 +6,7 @@ import {
 } from "./router/router.jsx";
 import Nav from "./components/Nav.jsx";
 import Footer from "./components/Footer.jsx";
+import MobileBottomNav from "./components/MobileBottomNav.jsx";
 import Home from "./pages/Home.jsx";
 import Marketplace from "./pages/Marketplace.jsx";
 import HowItWorks from "./pages/HowItWorks.jsx";
@@ -53,11 +54,12 @@ function Shell() {
 
       <Nav />
 
-      <main id="main" ref={mainRef} tabIndex={-1} className="flex-1 outline-none">
+      <main id="main" ref={mainRef} tabIndex={-1} className="flex-1 outline-none pb-16 md:pb-0">
         <Routes routes={ROUTES} notFound={<NotFound />} />
       </main>
 
       <Footer />
+      <MobileBottomNav />
     </div>
   );
 }

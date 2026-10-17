@@ -8,6 +8,7 @@ import {
   Sparkles,
   X,
 } from "lucide-react";
+import { useLocation } from "../router/router.jsx";
 import { useLiveFeed } from "../hooks/useLiveFeed.js";
 import { useWarmup } from "../hooks/useWarmup.js";
 import { demoListings } from "../data/demoListings.js";
@@ -36,6 +37,7 @@ function SkeletonCard() {
 }
 
 export default function Marketplace() {
+  const { search } = useLocation();
   const { products, online, loading, refresh } = useLiveFeed();
   const [activeTab, setActiveTab] = useState("listings"); // "listings" | "wanted"
   const [query, setQuery] = useState("");
@@ -50,17 +52,76 @@ export default function Marketplace() {
   const usingDemo = !loading && !online && products.length === 0;
   const source = usingDemo ? demoListings : products;
 
-  // Deep-link query listener: ?tab=wanted, ?wanted=, and ?item=<id-or-slug>
+  // Comprehensive query parameter synchronization (?category=, ?tab=, ?college=, ?branch=, ?item=, ?q=)
   useEffect(() => {
     if (typeof window === "undefined") return;
-    const params = new URLSearchParams(window.location.search);
+    const currentSearch = search || window.location.search;
+    if (!currentSearch) return;
 
+    const params = new URLSearchParams(currentSearch);
+
+    // 1. Tab switching: ?tab=wanted, ?wanted=, or ?tab=listings
     const tabParam = params.get("tab");
     const wantedParam = params.get("wanted");
     if (tabParam === "wanted" || wantedParam) {
       setActiveTab("wanted");
+    } else if (tabParam === "listings") {
+      setActiveTab("listings");
     }
 
+    // 2. Category filtering: ?category=Academic%20Material, ?category=Electronics, etc.
+    const catParam = params.get("category");
+    if (catParam) {
+      const decodedCat = decodeURIComponent(catParam).trim().toLowerCase();
+      // Look through available products to find exact or casing match
+      const matchedCat = source.find(
+        (p) => (p.category || "").toLowerCase() === decodedCat
+      )?.category;
+      if (matchedCat) {
+        setCategory(matchedCat);
+      } else if (catParam) {
+        setCategory(catParam);
+      }
+    }
+
+    // 3. College filtering: ?college=...
+    const collegeParam = params.get("college") || params.get("campus");
+    if (collegeParam) {
+      const decodedCollege = decodeURIComponent(collegeParam).trim().toLowerCase();
+      const matchedCollege = source.find(
+        (p) => (p.college_name || "").toLowerCase().includes(decodedCollege)
+      )?.college_name;
+      if (matchedCollege) {
+        setCollege(matchedCollege);
+      }
+    }
+
+    // 4. Branch & Year filtering: ?branch=..., ?year=...
+    const branchParam = params.get("branch") || params.get("dept");
+    if (branchParam) {
+      const decodedBranch = decodeURIComponent(branchParam).trim();
+      const matchedBranch = BRANCHES.find(
+        (b) => b.toLowerCase() === decodedBranch.toLowerCase()
+      );
+      if (matchedBranch) setBranch(matchedBranch);
+    }
+
+    const yearParam = params.get("year");
+    if (yearParam) {
+      const decodedYear = decodeURIComponent(yearParam).trim();
+      const matchedYear = ACADEMIC_YEARS.find(
+        (y) => y.toLowerCase().includes(decodedYear.toLowerCase())
+      );
+      if (matchedYear) setYear(matchedYear);
+    }
+
+    // 5. Search query: ?q=... or ?search=...
+    const searchParam = params.get("q") || params.get("search");
+    if (searchParam) {
+      setQuery(decodeURIComponent(searchParam).trim());
+    }
+
+    // 6. Deep link auto-modal open: ?item=<id-or-slug>
     const itemParam = params.get("item");
     if (itemParam && source.length > 0) {
       const needle = decodeURIComponent(itemParam).trim().toLowerCase();
@@ -75,7 +136,7 @@ export default function Marketplace() {
         setSelected(matched);
       }
     }
-  }, [source]);
+  }, [search, source]);
 
   const categories = useMemo(() => {
     const set = new Set();

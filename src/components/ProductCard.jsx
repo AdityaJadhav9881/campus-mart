@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { GraduationCap, ImageOff, Star } from "lucide-react";
 import {
   buildWhatsAppShareUrl,
@@ -23,6 +24,7 @@ function WhatsAppIcon({ className = "h-3.5 w-3.5" }) {
 }
 
 export default function ProductCard({ product, onOpen }) {
+  const [imageError, setImageError] = useState(false);
   const price = productPrice(product);
   const outOf5 = trustOutOf5(product?.seller_trust_score);
   const academic = inferAcademicMeta(product);
@@ -51,6 +53,8 @@ export default function ProductCard({ product, onOpen }) {
     Math.round(suggested) !== Math.round(listed);
   const posted = relativeTime(product?.created_at);
 
+  const hasValidImage = Boolean(product?.image_url) && !imageError;
+
   return (
     <article
       role="button"
@@ -66,11 +70,12 @@ export default function ProductCard({ product, onOpen }) {
       className="group flex h-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-line bg-card transition duration-200 hover:border-line-strong hover:shadow-[0_1px_2px_rgba(28,25,23,0.05),0_12px_28px_-18px_rgba(28,25,23,0.35)]"
     >
       <div className="relative aspect-[16/10] overflow-hidden bg-sunken">
-        {product?.image_url ? (
+        {hasValidImage ? (
           <img
             src={product.image_url}
             alt=""
             loading="lazy"
+            onError={() => setImageError(true)}
             className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
           />
         ) : (
@@ -96,6 +101,9 @@ export default function ProductCard({ product, onOpen }) {
             e.stopPropagation();
             const url = buildWhatsAppShareUrl(product);
             window.open(url, "_blank", "noopener,noreferrer");
+          }}
+          onKeyDown={(e) => {
+            e.stopPropagation();
           }}
           className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full border border-line/70 bg-card/95 text-[#25D366] shadow-xs backdrop-blur transition hover:scale-110 hover:bg-[#25D366] hover:text-white"
         >

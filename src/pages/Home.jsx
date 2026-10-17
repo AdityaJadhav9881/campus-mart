@@ -36,8 +36,10 @@ function Counter({ term, value }) {
 }
 
 function PreviewRow({ product, onOpen }) {
+  const [imgError, setImgError] = useState(false);
   const price = productPrice(product);
   const outOf5 = trustOutOf5(product.seller_trust_score);
+  const hasValidImage = Boolean(product.image_url) && !imgError;
 
   return (
     <li
@@ -54,8 +56,13 @@ function PreviewRow({ product, onOpen }) {
       className="group flex cursor-pointer items-center gap-3 rounded-xl px-2.5 py-2.5 transition hover:bg-sunken/80 focus:bg-sunken"
     >
       <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-line bg-sunken text-faint group-hover:border-line-strong transition">
-        {product.image_url ? (
-          <img src={product.image_url} alt="" className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300" />
+        {hasValidImage ? (
+          <img
+            src={product.image_url}
+            alt=""
+            onError={() => setImgError(true)}
+            className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300"
+          />
         ) : (
           <Store className="h-4 w-4" aria-hidden="true" />
         )}

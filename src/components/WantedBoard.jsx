@@ -129,6 +129,21 @@ export default function WantedBoard({
   const [selectedBranch, setSelectedBranch] = useState("All Branches");
   const [handoffItem, setHandoffItem] = useState(null);
 
+  // Modal Escape key and overflow lock for handoffItem
+  useEffect(() => {
+    if (!handoffItem) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKeyDown = (e) => {
+      if (e.key === "Escape") setHandoffItem(null);
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [handoffItem]);
+
   // Sync with live backend
   useEffect(() => {
     let active = true;
@@ -458,6 +473,19 @@ function PostWantedModal({ onClose, onSuccess }) {
   const [studentName, setStudentName] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  useEffect(() => {
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKeyDown = (e) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [onClose]);
+
   const handleAiAutoFill = async () => {
     if (!prompt.trim()) return;
     setAiLoading(true);
@@ -481,10 +509,14 @@ function PostWantedModal({ onClose, onSuccess }) {
     if (!title.trim()) return;
 
     setSubmitting(true);
+    const parsedBudget = budget ? parseInt(budget, 10) : null;
+    const safeBudget =
+      Number.isFinite(parsedBudget) && parsedBudget > 0 ? parsedBudget : null;
+
     const payload = {
       id: `wanted-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
       title: title.trim(),
-      budget: budget ? parseInt(budget, 10) : null,
+      budget: safeBudget,
       urgency,
       branch,
       academic_year: academicYear,

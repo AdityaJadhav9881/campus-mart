@@ -18,6 +18,7 @@ import {
   User,
   XCircle,
 } from "lucide-react";
+import { useLocation } from "../router/router.jsx";
 import { usePipeline } from "../hooks/usePipeline.js";
 import { useAuth } from "../hooks/useAuth.js";
 import { useLiveFeed } from "../hooks/useLiveFeed.js";
@@ -416,6 +417,7 @@ function AskCampusMartAiSection({ token, catalog, initialQuery = "" }) {
 }
 
 export default function Sandbox() {
+  const { search } = useLocation();
   const { products } = useLiveFeed();
   const { token } = useAuth();
   const [title, setTitle] = useState("");
@@ -432,19 +434,34 @@ export default function Sandbox() {
 
   useEffect(() => {
     try {
-      const params = new URLSearchParams(window.location.search);
+      const currentSearch = search || window.location.search;
+      if (!currentSearch) return;
+      const params = new URLSearchParams(currentSearch);
       const itemParam = params.get("item") || params.get("title");
       if (itemParam) {
-        setTitle(itemParam);
-      }
-      const queryParam = params.get("query");
-      if (queryParam) {
-        setInitialAiQuery(queryParam);
+        const decodedItem = decodeURIComponent(itemParam);
+        setTitle(decodedItem);
+        const priceParam = params.get("price");
+        const queryParam = params.get("query");
+        if (queryParam) {
+          setInitialAiQuery(decodeURIComponent(queryParam));
+        } else {
+          setInitialAiQuery(
+            priceParam
+              ? `What is a fair second-hand resale price for ${decodedItem} (listed at ₹${priceParam}) on campus?`
+              : `What is a fair second-hand resale price for ${decodedItem} on campus?`
+          );
+        }
+      } else {
+        const queryParam = params.get("query");
+        if (queryParam) {
+          setInitialAiQuery(decodeURIComponent(queryParam));
+        }
       }
     } catch {
       /* ignore */
     }
-  }, []);
+  }, [search]);
 
   useEffect(() => {
     return () => {

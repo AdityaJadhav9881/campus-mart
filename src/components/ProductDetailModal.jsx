@@ -55,8 +55,10 @@ function TrustStars({ outOf5 }) {
 
 function Gallery({ images, category, title }) {
   const [index, setIndex] = useState(0);
+  const [failedMap, setFailedMap] = useState({});
   const safeIndex = images.length > 0 ? Math.min(index, images.length - 1) : 0;
   const active = images[safeIndex];
+  const activeFailed = !active || failedMap[active];
 
   const step = (delta) => {
     if (images.length === 0) return;
@@ -86,7 +88,18 @@ function Gallery({ images, category, title }) {
                   : "border-line hover:border-line-strong"
               }`}
             >
-              <img src={url} alt="" className="h-full w-full object-cover" />
+              {failedMap[url] ? (
+                <div className="flex h-full w-full items-center justify-center bg-sunken text-faint">
+                  <ImageOff className="h-4 w-4" />
+                </div>
+              ) : (
+                <img
+                  src={url}
+                  alt=""
+                  onError={() => setFailedMap((prev) => ({ ...prev, [url]: true }))}
+                  className="h-full w-full object-cover"
+                />
+              )}
             </button>
           ))}
         </div>
@@ -95,10 +108,11 @@ function Gallery({ images, category, title }) {
       {/* Main preview */}
       <div className="order-1 relative overflow-hidden rounded-xl border border-line bg-sunken sm:order-2">
         <div className="flex aspect-[4/3] items-center justify-center">
-          {active ? (
+          {!activeFailed ? (
             <img
               src={active}
               alt={`${title} — photo ${safeIndex + 1} of ${images.length}`}
+              onError={() => setFailedMap((prev) => ({ ...prev, [active]: true }))}
               className="h-full w-full object-cover"
             />
           ) : (

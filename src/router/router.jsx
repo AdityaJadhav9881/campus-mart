@@ -7,10 +7,7 @@ import {
   useState,
 } from "react";
 
-/* A dependency-free pathname router.
-   History API + popstate, exact-path matching, and SPA-safe links.
-   The vercel.json rewrite sends every path to index.html so deep links
-   (/marketplace, /download, …) resolve on first load. */
+/* A robust dependency-free browser History router with full query string and hash support. */
 
 const RouterContext = createContext(null);
 
@@ -25,29 +22,44 @@ export function Router({ children }) {
   const [path, setPath] = useState(() =>
     normalizePath(window.location.pathname)
   );
+  const [search, setSearch] = useState(() => window.location.search);
 
   useEffect(() => {
-    const onPopState = () => setPath(normalizePath(window.location.pathname));
+    const onPopState = () => {
+      setPath(normalizePath(window.location.pathname));
+      setSearch(window.location.search);
+    };
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
   }, []);
 
   const navigate = useCallback((to, options = {}) => {
     const { replace = false } = options;
-    const target = normalizePath(typeof to === "string" ? to : to?.pathname);
-    const current = normalizePath(window.location.pathname);
+    const raw = typeof to === "string" ? to : `${to?.pathname || "/"}${to?.search || ""}`;
+    const [pathPart, ...queryParts] = raw.split("?");
+    const targetPath = normalizePath(pathPart);
+    const queryString = queryParts.length > 0 ? `?${queryParts.join("?")}` : "";
+    const fullTarget = `${targetPath}${queryString}`;
 
-    if (target === current && !replace) return;
+    const currentFull = `${normalizePath(window.location.pathname)}${window.location.search}`;
 
-    if (replace) window.history.replaceState(null, "", target);
-    else window.history.pushState(null, "", target);
+    if (fullTarget === currentFull && !replace) return;
 
-    setPath(target);
+    if (replace) window.history.replaceState(null, "", fullTarget);
+    else window.history.pushState(null, "", fullTarget);
+
+    setPath(targetPath);
+    setSearch(queryString);
   }, []);
 
   const value = useMemo(
-    () => ({ path, navigate, location: { pathname: path } }),
-    [path, navigate]
+    () => ({
+      path,
+      search,
+      navigate,
+      location: { pathname: path, search },
+    }),
+    [path, search, navigate]
   );
 
   return (
@@ -98,9 +110,9 @@ export function NavLink({
   ...rest
 }) {
   const { path } = useRouter();
-  const target = normalizePath(to);
+  const targetPath = normalizePath(typeof to === "string" ? to : to?.pathname);
   const isActive =
-    target === "/" ? path === "/" : path === target || path.startsWith(`${target}/`);
+    targetPath === "/" ? path === "/" : path === targetPath || path.startsWith(`${targetPath}/`);
 
   const resolved =
     typeof className === "function"
@@ -108,7 +120,7 @@ export function NavLink({
       : `${className}${isActive ? ` ${activeClassName}` : ""}`;
 
   return (
-    <Link to={target} className={resolved} aria-current={isActive ? "page" : undefined} {...rest}>
+    <Link to={to} className={resolved} aria-current={isActive ? "page" : undefined} {...rest}>
       {children}
     </Link>
   );
