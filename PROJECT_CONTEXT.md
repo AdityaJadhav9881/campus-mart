@@ -172,9 +172,22 @@ The application is structured into 5 primary student-facing routes managed by `s
   - Natural language input (*"Need Casio fx-991CW under ₹700 urgent for tomorrow exam"*).
   - `"✨ Auto-Fill"` button invoking `aiDraftWantedRequest()` (with instant local NLP regex parsing fallback) to auto-extract Title, Budget, Urgency, Branch, and Academic Year.
   - Instant optimistic posting to the board and background synchronization.
-  1. `Get the App to Chat with Seller` (routes to `/download`)
-  2. `Ask CampusMart AI About This Item` (routes to `/sandbox?item=...`)
-- **Accessibility:** Trap focus, body scroll lock, Escape key dismiss, backdrop blur click dismiss.
+
+### `HeroGraphic.jsx` (Interactive 4-Angle AI Viewfinder)
+- **Viewfinder Reticle Frame:** High-end Apple/Stripe-tier interactive graphic simulating live camera inspection of campus gear (Casio fx-991CW).
+- **Scanning Laser Beam Animation:** CSS `@keyframes laser-sweep` beam sweeping down the item with glow effects.
+- **Corner Target Crosshairs:** Hairline technical reticles `[  ]` and central scan indicator.
+- **Interactive 4-Angle Selector:** 4 clickable angle buttons (`Front`, `Back`, `Slide Cover`, `Self-Test`) that dynamically update inspection images, diagnostic notes, and confidence scores (`99.4%`).
+- **Floating Valuation & Trust Badges:** Surfaces `AI Suggested Price: ₹650 (38% below MRP)` and seller trust verification seal (`★ 4.9 · DACOE Karad`).
+
+### `CategoryShowcase.jsx` (Graphic Category Grid)
+- **6 Duotone Graphic Cards:** Textbooks & Notes, Engineering Tools, Laptops & Gadgets, Lab Coats & Pharma, Electronics & IoT, and Hostel Essentials.
+- **Custom Visual Accents:** Subtle ambient gradients, category icons, item counts, and promotional badges (`50-70% Off MRP`, `Submission Ready`, `4-Angle Verified`).
+- **Direct 1-Click Routing:** Navigates straight to `/marketplace?category=...`.
+
+### `TrustBadges.jsx` (Campus Trust Architecture)
+- **4 Editorial Trust Pillars:** 100% Verified Campus Peers, 4-Angle Vision AI Verification, Hostel & Campus Safe Zones, and Zero Middleman Fees.
+- **Micro-Badges:** Highlights key guarantees (`Student IDs Checked`, `Zero Fake Photos`, `Instant 5-Min Handover`, `₹0 Commission`).
 
 ### `AuthCard.jsx` (Student Sign In & OTP Verification)
 - **Dual Tab Mode:** `Sign in` (email + password) and `Sign up` (name + email + password minLength 8).
