@@ -1,5 +1,4 @@
 import { Mail } from "lucide-react";
-import { Link } from "../router/router.jsx";
 import { SUPPORT_EMAIL, SUPPORT_MAILTO } from "../data/site.js";
 
 export default function Footer() {
@@ -19,10 +18,6 @@ export default function Footer() {
             <Mail className="h-3 w-3 shrink-0" aria-hidden="true" />
             {SUPPORT_EMAIL}
           </a>
-          <span className="text-line-strong">·</span>
-          <Link to="/how-it-works" className="hover:text-ink">
-            How verification works
-          </Link>
         </div>
       </div>
     </footer>
