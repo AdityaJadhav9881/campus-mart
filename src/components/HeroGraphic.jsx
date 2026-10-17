@@ -61,7 +61,7 @@ export default function HeroGraphic() {
   const isFailed = failedImages[active.id];
 
   return (
-    <div className="relative mx-auto w-full max-w-lg select-none">
+    <div className="relative mx-auto w-full max-w-lg min-w-0 overflow-hidden select-none">
       {/* Decorative ambient background glow */}
       <div
         aria-hidden="true"
@@ -71,15 +71,15 @@ export default function HeroGraphic() {
       {/* Main Graphic Frame / Device Inspection Viewfinder */}
       <div className="relative overflow-hidden rounded-3xl border border-line-strong bg-card shadow-[0_20px_50px_-15px_rgba(28,25,23,0.18)] transition-all duration-300">
         {/* Viewfinder Top Bar */}
-        <div className="flex items-center justify-between border-b border-line bg-sunken/80 px-4 py-3 backdrop-blur-xs">
-          <div className="flex items-center gap-2">
-            <span className="flex h-2 w-2 rounded-full bg-positive live-dot" />
-            <span className="font-mono text-[11px] font-medium tracking-wide text-ink uppercase">
+        <div className="flex items-center justify-between gap-2 border-b border-line bg-sunken/80 px-3 sm:px-4 py-2.5 sm:py-3 backdrop-blur-xs min-w-0">
+          <div className="flex items-center gap-1.5 sm:gap-2 min-w-0 truncate">
+            <span className="flex h-2 w-2 shrink-0 rounded-full bg-positive live-dot" />
+            <span className="font-mono text-[10.5px] sm:text-[11px] font-medium tracking-wide text-ink uppercase truncate">
               AI Vision Lens · 4-Angle Scan
             </span>
           </div>
 
-          <div className="flex items-center gap-1.5 font-mono text-[10.5px] text-faint">
+          <div className="flex items-center gap-1.5 font-mono text-[10px] sm:text-[10.5px] text-faint shrink-0">
             <Cpu className="h-3 w-3 text-accent" />
             <span>CONF: {active.confidence}</span>
           </div>
@@ -184,14 +184,14 @@ export default function HeroGraphic() {
         </div>
 
         {/* Bottom Inspection Metadata Bar */}
-        <div className="flex items-center justify-between border-t border-line bg-card px-4 py-2.5 text-xs text-muted">
-          <div className="flex items-center gap-1.5">
-            <ShieldCheck className="h-4 w-4 text-positive" />
-            <span className="font-medium text-ink">Verified Student Seller</span>
-            <span className="text-faint">· DACOE Karad</span>
+        <div className="flex items-center justify-between gap-2 border-t border-line bg-card px-3 sm:px-4 py-2.5 text-xs text-muted min-w-0 overflow-hidden">
+          <div className="flex items-center gap-1.5 min-w-0 flex-1 truncate">
+            <ShieldCheck className="h-4 w-4 shrink-0 text-positive" />
+            <span className="font-medium text-ink truncate">Verified Student Seller</span>
+            <span className="text-faint truncate hidden sm:inline">· DACOE Karad</span>
           </div>
 
-          <span className="flex items-center gap-1 font-semibold text-warn">
+          <span className="shrink-0 flex items-center gap-1 font-semibold text-warn">
             ★ 4.9 <span className="text-faint font-normal">/ 5</span>
           </span>
         </div>

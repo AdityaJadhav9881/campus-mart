@@ -40,8 +40,8 @@ const TRUST_PILLARS = [
 
 export default function TrustBadges() {
   return (
-    <section className="border-y border-line bg-sunken/40 py-12">
-      <div className="mx-auto max-w-6xl px-5 sm:px-8">
+    <section className="border-y border-line bg-sunken/40 py-10 sm:py-12 w-full max-w-full min-w-0 overflow-hidden">
+      <div className="mx-auto w-full max-w-6xl min-w-0 px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-2xl mx-auto mb-10">
           <span className="inline-flex items-center gap-1.5 rounded-full border border-line bg-card px-3 py-1 text-xs font-semibold text-accent shadow-xs">
             <ShieldCheck className="h-3.5 w-3.5" />
@@ -55,13 +55,13 @@ export default function TrustBadges() {
           </p>
         </div>
 
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4 w-full min-w-0">
           {TRUST_PILLARS.map((pillar, idx) => {
             const Icon = pillar.icon;
             return (
               <div
                 key={idx}
-                className="group relative flex flex-col justify-between rounded-2xl border border-line bg-card p-5 shadow-xs transition-all duration-200 hover:border-line-strong hover:shadow-md"
+                className="group relative flex flex-col justify-between w-full max-w-full min-w-0 overflow-hidden rounded-2xl border border-line bg-card p-5 shadow-xs transition-all duration-200 hover:border-line-strong hover:shadow-md"
               >
                 <div>
                   <div className="flex items-center justify-between">

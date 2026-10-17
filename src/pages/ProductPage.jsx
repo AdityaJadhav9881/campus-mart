@@ -219,16 +219,16 @@ export default function ProductPage() {
   };
 
   return (
-    <div className="page-in w-full pb-16">
-      <div className="mx-auto max-w-6xl px-5 pt-4 pb-12 sm:px-8 sm:pt-6">
+    <div className="page-in w-full max-w-full min-w-0 overflow-hidden pb-16">
+      <div className="mx-auto w-full max-w-6xl min-w-0 overflow-hidden px-4 sm:px-6 lg:px-8 pt-4 pb-12 sm:pt-6">
         {/* Top Breadcrumb Navigation */}
         <nav
           aria-label="Breadcrumb"
-          className="mb-6 flex flex-wrap items-center gap-2 text-xs font-medium text-muted"
+          className="mb-6 flex flex-wrap items-center gap-2 text-xs font-medium text-muted min-w-0"
         >
           <Link
             to="/marketplace"
-            className="inline-flex items-center gap-1.5 text-accent hover:text-accent-deep transition-colors"
+            className="inline-flex items-center gap-1.5 text-accent hover:text-accent-deep transition-colors shrink-0"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
             <span>Marketplace</span>
@@ -238,22 +238,22 @@ export default function ProductPage() {
             <>
               <Link
                 to={`/marketplace?category=${encodeURIComponent(product.category)}`}
-                className="hover:text-ink transition-colors"
+                className="hover:text-ink transition-colors shrink-0"
               >
                 {product.category}
               </Link>
               <span className="text-faint">/</span>
             </>
           )}
-          <span className="truncate max-w-[220px] sm:max-w-xs text-ink font-semibold">
+          <span className="truncate max-w-[180px] sm:max-w-xs text-ink font-semibold">
             {title}
           </span>
         </nav>
 
         {/* Flagship 2-Column Product Layout */}
-        <div className="grid gap-8 lg:grid-cols-12 lg:gap-12 items-start">
+        <div className="grid gap-8 lg:grid-cols-12 lg:gap-12 items-start w-full min-w-0">
           {/* Left Column: 4-Angle Interactive Visual Showcase (7 cols) */}
-          <div className="lg:col-span-7 space-y-4">
+          <div className="lg:col-span-7 space-y-4 w-full min-w-0 overflow-hidden">
             {/* Main High-Res Image Stage */}
             <div className="group relative aspect-[4/3] w-full overflow-hidden rounded-2xl border border-line bg-sunken shadow-xs">
               {!activeFailed ? (
@@ -374,9 +374,9 @@ export default function ProductPage() {
           </div>
 
           {/* Right Column: Product Info & Clean Action Dock (5 cols) */}
-          <div className="lg:col-span-5 space-y-5">
+          <div className="lg:col-span-5 space-y-5 w-full min-w-0 overflow-hidden">
             {/* Title & Badges Box */}
-            <div className="rounded-2xl border border-line bg-card p-5 sm:p-6 shadow-xs">
+            <div className="rounded-2xl border border-line bg-card p-5 sm:p-6 shadow-xs w-full min-w-0">
               {/* Badges Row */}
               <div className="flex flex-wrap items-center gap-1.5 text-xs">
                 <span className="rounded-md border border-line bg-sunken px-2.5 py-1 text-xs font-medium text-ink-soft">
@@ -391,7 +391,7 @@ export default function ProductPage() {
               </div>
 
               {/* Title */}
-              <h1 className="mt-3.5 font-display text-2xl font-medium sm:text-3xl text-ink leading-snug">
+              <h1 className="mt-3.5 font-display text-2xl font-medium sm:text-3xl text-ink leading-snug break-words">
                 {title}
               </h1>
 
@@ -556,21 +556,21 @@ export default function ProductPage() {
 
         {/* Bottom Section: More items from campus */}
         {relatedProducts.length > 0 && (
-          <section className="mt-14 border-t border-line pt-10">
-            <div className="flex items-baseline justify-between mb-6">
-              <div>
+          <section className="mt-14 border-t border-line pt-10 w-full min-w-0 overflow-hidden">
+            <div className="flex items-baseline justify-between mb-6 min-w-0">
+              <div className="min-w-0">
                 <p className="eyebrow">Campus Exchange</p>
-                <h2 className="mt-1 text-2xl font-medium text-ink">More items from campus</h2>
+                <h2 className="mt-1 text-2xl font-medium text-ink truncate">More items from campus</h2>
               </div>
               <Link
                 to="/marketplace"
-                className="text-xs font-semibold text-accent hover:underline sm:text-sm"
+                className="shrink-0 text-xs font-semibold text-accent hover:underline sm:text-sm ml-2"
               >
                 View full marketplace →
               </Link>
             </div>
 
-            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3 w-full min-w-0">
               {relatedProducts.map((p) => (
                 <ProductCard key={p.id} product={p} />
               ))}
@@ -600,3 +600,4 @@ export default function ProductPage() {
     </div>
   );
 }
+

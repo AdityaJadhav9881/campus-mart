@@ -81,15 +81,15 @@ const CATEGORIES = [
 
 export default function CategoryShowcase() {
   return (
-    <section className="mx-auto max-w-6xl px-5 py-10 sm:px-8 sm:py-14">
+    <section className="mx-auto w-full max-w-6xl min-w-0 overflow-hidden px-4 sm:px-6 lg:px-8 py-10 sm:py-14">
       {/* Header */}
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between mb-8">
-        <div>
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between mb-8 min-w-0">
+        <div className="min-w-0">
           <div className="flex items-center gap-2">
             <Sparkles className="h-4 w-4 text-accent" />
             <p className="eyebrow">Explore Campus Categories</p>
           </div>
-          <h2 className="mt-1.5 text-2xl font-medium sm:text-3xl text-ink">
+          <h2 className="mt-1.5 text-2xl font-medium sm:text-3xl text-ink truncate">
             Everything your semester requires
           </h2>
           <p className="mt-1 text-xs text-muted sm:text-sm">
@@ -99,7 +99,7 @@ export default function CategoryShowcase() {
 
         <Link
           to="/marketplace"
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-accent hover:text-accent-deep sm:text-sm transition-colors"
+          className="shrink-0 inline-flex items-center gap-1.5 text-xs font-semibold text-accent hover:text-accent-deep sm:text-sm transition-colors"
         >
           <span>Browse entire marketplace</span>
           <ArrowRight className="h-4 w-4" />
@@ -107,14 +107,14 @@ export default function CategoryShowcase() {
       </div>
 
       {/* Grid of Graphic Category Cards */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 w-full min-w-0">
         {CATEGORIES.map((cat) => {
           const Icon = cat.icon;
           return (
             <Link
               key={cat.id}
               to={`/marketplace?category=${encodeURIComponent(cat.searchCategory)}`}
-              className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-line bg-card p-5 transition-all duration-300 hover:border-line-strong hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:-translate-y-0.5"
+              className="group relative flex flex-col justify-between w-full max-w-full min-w-0 overflow-hidden rounded-2xl border border-line bg-card p-5 transition-all duration-300 hover:border-line-strong hover:shadow-[0_8px_30px_rgb(0,0,0,0.06)] hover:-translate-y-0.5"
             >
               {/* Subtle Ambient Background Gradient */}
               <div

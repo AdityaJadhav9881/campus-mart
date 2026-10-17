@@ -612,9 +612,9 @@ export default function Sandbox() {
   }, [done, step, result]);
 
   return (
-    <div className="page-in w-full pb-10">
-      <div className="mx-auto max-w-6xl px-5 py-8 sm:px-8">
-        <header className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3">
+    <div className="page-in w-full max-w-full min-w-0 overflow-hidden pb-10">
+      <div className="mx-auto w-full max-w-6xl min-w-0 overflow-hidden px-4 sm:px-6 lg:px-8 py-8">
+        <header className="flex flex-wrap items-end justify-between gap-x-6 gap-y-3 min-w-0">
           <div className="min-w-0">
             <div className="inline-flex items-center gap-1.5 rounded-full border border-line bg-card px-3 py-1 text-xs font-semibold text-accent shadow-xs mb-2">
               <Sparkles className="h-3.5 w-3.5" />
@@ -638,9 +638,9 @@ export default function Sandbox() {
           </span>
         </header>
 
-        <div className="mt-6 grid gap-5 lg:grid-cols-[0.92fr_1.08fr]">
+        <div className="mt-6 grid gap-5 lg:grid-cols-[0.92fr_1.08fr] w-full min-w-0">
           {/* Inputs */}
-          <section className="card min-w-0 p-4 sm:p-6 shadow-xs">
+          <section className="card w-full min-w-0 overflow-hidden p-4 sm:p-6 shadow-xs">
             <Dropzone preview={preview} onFile={handleFile} onClear={clearFile} />
 
             <div className="mt-5">

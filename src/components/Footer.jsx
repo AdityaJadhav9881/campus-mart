@@ -3,8 +3,8 @@ import { SUPPORT_EMAIL, SUPPORT_MAILTO } from "../data/site.js";
 
 export default function Footer() {
   return (
-    <footer className="mt-auto shrink-0 border-t border-line bg-paper">
-      <div className="mx-auto flex max-w-6xl flex-col gap-2.5 px-5 py-4 text-xs text-faint sm:flex-row sm:items-center sm:justify-between sm:px-8 sm:py-3.5">
+    <footer className="mt-auto shrink-0 border-t border-line bg-paper w-full max-w-full min-w-0 overflow-hidden">
+      <div className="mx-auto flex max-w-6xl w-full min-w-0 flex-col gap-2.5 px-4 sm:px-6 lg:px-8 py-4 text-xs text-faint sm:flex-row sm:items-center sm:justify-between sm:py-3.5">
         <p className="text-center sm:text-left">
           <span className="text-muted">© 2026 CampusMart AI</span> · Verified
           Student Marketplace

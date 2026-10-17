@@ -32,8 +32,8 @@ export default function Nav() {
   const firstName = user?.name ? user.name.split(" ")[0] : "Student";
 
   return (
-    <header className="sticky top-0 z-40 shrink-0 border-b border-line bg-paper/90 backdrop-blur">
-      <div className="mx-auto flex h-16 max-w-6xl items-center gap-4 px-5 sm:px-8">
+    <header className="sticky top-0 z-40 shrink-0 border-b border-line bg-paper/90 backdrop-blur w-full max-w-full min-w-0 overflow-hidden">
+      <div className="mx-auto flex h-16 max-w-6xl w-full min-w-0 items-center gap-4 px-4 sm:px-6 lg:px-8">
         <Link
           to="/"
           className="flex items-center gap-2.5"

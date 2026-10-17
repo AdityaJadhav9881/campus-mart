@@ -204,14 +204,14 @@ export default function WantedBoard({
   const displayList = previewOnly ? items.slice(0, 3) : filteredItems;
 
   return (
-    <section className="w-full">
+    <section className="w-full max-w-full min-w-0 overflow-hidden">
       {/* Header controls (if not preview mode) */}
       {!previewOnly && (
-        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between min-w-0">
           <div className="min-w-0">
             <div className="flex items-center gap-2">
               <span className="inline-flex h-2 w-2 rounded-full bg-accent" />
-              <h2 className="text-xl font-medium sm:text-2xl">
+              <h2 className="text-xl font-medium sm:text-2xl truncate">
                 Campus "Want to Buy" Board
               </h2>
             </div>
@@ -233,7 +233,7 @@ export default function WantedBoard({
 
       {/* Filter Row (if not preview mode) */}
       {!previewOnly && (
-        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center w-full min-w-0">
           <div className="relative flex-1 sm:max-w-xs">
             <Search
               className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-faint"
@@ -277,7 +277,7 @@ export default function WantedBoard({
       )}
 
       {/* Cards Grid */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 w-full min-w-0">
         {displayList.map((wanted) => {
           const matchedProduct = findMatchingListing(wanted, products);
           const postedTime = relativeTime(wanted.created_at);
@@ -285,22 +285,22 @@ export default function WantedBoard({
           return (
             <article
               key={wanted.id}
-              className="group flex flex-col justify-between rounded-2xl border border-line bg-card p-5 transition-all duration-200 hover:border-line-strong hover:shadow-[0_4px_20px_-10px_rgba(28,25,23,0.15)]"
+              className="group flex flex-col justify-between w-full max-w-full min-w-0 overflow-hidden rounded-2xl border border-line bg-card p-4 sm:p-5 transition-all duration-200 hover:border-line-strong hover:shadow-[0_4px_20px_-10px_rgba(28,25,23,0.15)]"
             >
-              <div>
-                <div className="flex items-start justify-between gap-2">
+              <div className="w-full min-w-0">
+                <div className="flex items-start justify-between gap-2 min-w-0">
                   <UrgencyPill urgency={wanted.urgency} />
-                  <span className="text-right text-xs text-faint tabular-nums">
+                  <span className="shrink-0 text-right text-xs text-faint tabular-nums">
                     {postedTime || "Recently"}
                   </span>
                 </div>
 
-                <h3 className="mt-3 text-base font-medium leading-snug text-ink line-clamp-2">
+                <h3 className="mt-3 text-base font-medium leading-snug text-ink line-clamp-2 break-words">
                   {wanted.title}
                 </h3>
 
                 {wanted.description && (
-                  <p className="mt-1.5 text-xs leading-relaxed text-muted line-clamp-2">
+                  <p className="mt-1.5 text-xs leading-relaxed text-muted line-clamp-2 break-words">
                     {wanted.description}
                   </p>
                 )}

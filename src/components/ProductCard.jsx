@@ -77,7 +77,7 @@ export default function ProductCard({ product, onOpen }) {
           handleCardClick();
         }
       }}
-      className="group flex h-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-line bg-card transition duration-200 hover:border-line-strong hover:shadow-[0_1px_2px_rgba(28,25,23,0.05),0_12px_28px_-18px_rgba(28,25,23,0.35)]"
+      className="group flex h-full w-full max-w-full min-w-0 cursor-pointer flex-col overflow-hidden rounded-2xl border border-line bg-card transition duration-200 hover:border-line-strong hover:shadow-[0_1px_2px_rgba(28,25,23,0.05),0_12px_28px_-18px_rgba(28,25,23,0.35)]"
     >
       <div className="relative aspect-[16/10] overflow-hidden bg-sunken">
         {hasValidImage ? (
@@ -121,9 +121,9 @@ export default function ProductCard({ product, onOpen }) {
         </button>
       </div>
 
-      <div className="flex flex-1 flex-col gap-3 p-4">
-        <div className="min-w-0">
-          <h3 className="line-clamp-2 text-base leading-snug">{product?.title}</h3>
+      <div className="flex flex-1 min-w-0 flex-col gap-3 p-4">
+        <div className="min-w-0 w-full">
+          <h3 className="line-clamp-2 text-base leading-snug break-words">{product?.title}</h3>
           
           <div className="mt-1.5 flex flex-wrap items-center gap-1.5 text-xs text-muted">
             {product?.college_name && (
@@ -138,7 +138,7 @@ export default function ProductCard({ product, onOpen }) {
           </div>
 
           {product?.description ? (
-            <p className="mt-1.5 line-clamp-2 text-[13px] leading-relaxed text-muted">
+            <p className="mt-1.5 line-clamp-2 text-[13px] leading-relaxed text-muted break-words">
               {product.description}
             </p>
           ) : null}

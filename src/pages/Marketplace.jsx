@@ -221,9 +221,9 @@ export default function Marketplace() {
   };
 
   return (
-    <div className="page-in mx-auto w-full max-w-6xl px-5 pt-6 pb-12 sm:px-8 sm:pt-8">
-      <header className="shrink-0">
-        <div className="mx-auto flex max-w-6xl flex-wrap items-end justify-between gap-x-6 gap-y-4">
+    <div className="page-in mx-auto w-full max-w-6xl min-w-0 overflow-hidden px-4 sm:px-6 lg:px-8 pt-6 pb-12 sm:pt-8">
+      <header className="shrink-0 w-full min-w-0">
+        <div className="mx-auto flex max-w-6xl w-full min-w-0 flex-wrap items-end justify-between gap-x-6 gap-y-4">
           <div className="min-w-0">
             <p className="eyebrow">Campus Commerce Hub</p>
             <h1 className="mt-2 text-3xl leading-tight sm:text-4xl">
@@ -244,7 +244,7 @@ export default function Marketplace() {
         </div>
 
         {/* Primary View Switcher: Listings vs Want to Buy */}
-        <div className="mx-auto mt-6 flex max-w-6xl items-center gap-2 border-b border-line pb-3">
+        <div className="mx-auto mt-6 flex max-w-6xl w-full min-w-0 items-center gap-2 border-b border-line pb-3 overflow-x-auto scroll-slim">
           <button
             type="button"
             onClick={() => setActiveTab("listings")}
@@ -474,7 +474,7 @@ export default function Marketplace() {
           </div>
         ) : (
           <>
-            <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+            <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3 w-full min-w-0">
               {filtered.map((product) => (
                 <ProductCard
                   key={product.id ?? product.title}
@@ -484,7 +484,7 @@ export default function Marketplace() {
             </div>
 
             {/* Want to Buy Callout footer banner */}
-            <div className="mt-10 flex flex-col items-center justify-between gap-4 rounded-2xl border border-line bg-card p-6 sm:flex-row sm:p-7">
+            <div className="mt-10 flex flex-col items-center justify-between gap-4 rounded-2xl border border-line bg-card p-4 sm:p-7 sm:flex-row w-full min-w-0 overflow-hidden">
               <div className="min-w-0">
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-accent/25 bg-accent-soft px-3 py-1 text-xs font-semibold text-accent-deep">
                   <Sparkles className="h-3.5 w-3.5" />

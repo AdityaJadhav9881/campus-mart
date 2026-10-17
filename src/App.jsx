@@ -50,7 +50,7 @@ function Shell() {
   }, [pathname]);
 
   return (
-    <div className="flex min-h-screen flex-col bg-paper text-ink">
+    <div className="flex min-h-screen w-full max-w-full min-w-0 flex-col overflow-x-hidden bg-paper text-ink">
       <a
         href="#main"
         className="sr-only focus:not-sr-only focus:absolute focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-ink focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-paper"
@@ -60,7 +60,7 @@ function Shell() {
 
       <Nav />
 
-      <main id="main" ref={mainRef} tabIndex={-1} className="flex-1 outline-none pb-24 md:pb-0">
+      <main id="main" ref={mainRef} tabIndex={-1} className="w-full max-w-full min-w-0 flex-1 outline-none overflow-x-hidden pb-24 md:pb-0">
         <Routes routes={ROUTES} notFound={<NotFound />} />
       </main>
 

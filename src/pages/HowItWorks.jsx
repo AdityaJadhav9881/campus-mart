@@ -71,8 +71,8 @@ function AngleTile({ angle }) {
 
 export default function HowItWorks() {
   return (
-    <div className="page-in w-full">
-      <div className="mx-auto grid max-w-6xl items-start gap-8 px-5 py-8 sm:px-8 sm:py-10 lg:grid-cols-[1fr_1fr] lg:items-center lg:gap-14 lg:py-12">
+    <div className="page-in w-full max-w-full min-w-0 overflow-hidden">
+      <div className="mx-auto grid max-w-6xl w-full min-w-0 items-start gap-8 px-4 sm:px-6 lg:px-8 py-8 sm:py-10 lg:grid-cols-[1fr_1fr] lg:items-center lg:gap-14 lg:py-12">
         {/* Steps */}
         <section className="min-w-0">
           <p className="eyebrow">How verification works</p>
