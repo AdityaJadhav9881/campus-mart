@@ -18,7 +18,7 @@ import {
   User,
   XCircle,
 } from "lucide-react";
-import { useLocation } from "../router/router.jsx";
+import { Link, useLocation } from "../router/router.jsx";
 import { usePipeline } from "../hooks/usePipeline.js";
 import { useAuth } from "../hooks/useAuth.js";
 import { useLiveFeed } from "../hooks/useLiveFeed.js";
@@ -220,8 +220,9 @@ function AskCampusMartAiSection({ token, catalog, initialQuery = "" }) {
     {
       role: "assistant",
       content:
-        "Hi there! I am CampusMart AI, synced live with our campus marketplace and second-hand student benchmarks in India. Ask me about fair second-hand resale prices, deals under ₹500, or selling tips!",
-      source: "catalog",
+        "Hi there! I am CampusMart AI, powered by Google Gemini and live campus catalog intelligence. Ask me about fair second-hand resale prices, deals under ₹500, or selling tips for your campus!",
+      source: "llm",
+      recommendedProductIds: [],
     },
   ]);
   const [input, setInput] = useState(initialQuery);
@@ -264,6 +265,7 @@ function AskCampusMartAiSection({ token, catalog, initialQuery = "" }) {
           role: "assistant",
           content: response.reply,
           source: response.source || "llm",
+          recommendedProductIds: response.recommendedProductIds || [],
         },
       ]);
     } catch {
@@ -274,6 +276,7 @@ function AskCampusMartAiSection({ token, catalog, initialQuery = "" }) {
           content:
             "I couldn't reach the server right now. Try checking our live listings on the Marketplace page!",
           source: "catalog",
+          recommendedProductIds: [],
         },
       ]);
     } finally {
@@ -294,13 +297,13 @@ function AskCampusMartAiSection({ token, catalog, initialQuery = "" }) {
           <div>
             <h2 className="text-xl font-medium leading-tight">Ask CampusMart AI</h2>
             <p className="mt-0.5 text-xs text-muted">
-              Live catalog-aware student assistant for fair second-hand pricing &amp; deals
+              Live Google Gemini agent synced with campus catalog intelligence &amp; student resale benchmarks
             </p>
           </div>
         </div>
         <span className="inline-flex items-center gap-2 rounded-full border border-positive/30 bg-positive-soft px-3 py-1 text-xs font-medium text-positive">
           <span className="live-dot h-1.5 w-1.5 rounded-full bg-positive" />
-          Live Assistant
+          Live Agent
         </span>
       </div>
 
@@ -348,6 +351,29 @@ function AskCampusMartAiSection({ token, catalog, initialQuery = "" }) {
                 }`}
               >
                 <div className="whitespace-pre-line">{m.content}</div>
+
+                {isAssistant && m.recommendedProductIds?.length > 0 && Array.isArray(catalog) && (
+                  <div className="mt-3 pt-2.5 border-t border-line/60">
+                    <p className="text-[11px] font-medium text-muted mb-1.5">Matching Campus Items:</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {m.recommendedProductIds.map((id) => {
+                        const product = catalog.find((p) => String(p.id) === String(id));
+                        if (!product) return null;
+                        return (
+                          <Link
+                            key={id}
+                            to={`/product/${product.id}`}
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-line bg-sunken hover:border-accent hover:bg-card px-2.5 py-1 text-xs text-ink transition"
+                          >
+                            <span className="font-medium truncate max-w-[140px]">{product.title}</span>
+                            <span className="font-semibold text-accent">₹{product.listed_price || product.suggested_price}</span>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+
                 {isAssistant && m.source && (
                   <div className="mt-2.5 flex items-center gap-1.5 text-[10.5px] text-faint">
                     <span
@@ -356,8 +382,8 @@ function AskCampusMartAiSection({ token, catalog, initialQuery = "" }) {
                       }`}
                     />
                     {m.source === "llm"
-                      ? "Live Gemini LLM"
-                      : "Campus Catalog Benchmark"}
+                      ? "✨ Live Google Gemini Agent"
+                      : "Campus Catalog & Valuation Agent"}
                   </div>
                 )}
               </div>
@@ -372,7 +398,7 @@ function AskCampusMartAiSection({ token, catalog, initialQuery = "" }) {
             </span>
             <div className="flex items-center gap-2 rounded-2xl border border-line bg-card px-4 py-3 text-xs text-muted">
               <Loader2 className="h-3.5 w-3.5 animate-spin text-accent" />
-              Thinking with campus catalog…
+              Thinking with CampusMart AI agent…
             </div>
           </div>
         )}

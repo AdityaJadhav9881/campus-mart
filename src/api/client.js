@@ -1,14 +1,13 @@
 import { fallbackSearchColleges } from "../data/colleges.js";
 import { cleanAiNotes } from "../lib/format.js";
 
+const DEFAULT_PROD_API = "https://campusmart-api-zia4.onrender.com";
 const EXPLICIT_BASE =
-  typeof import.meta !== "undefined" && import.meta.env
+  typeof import.meta !== "undefined" && import.meta.env?.VITE_API_BASE_URL
     ? import.meta.env.VITE_API_BASE_URL
-    : "";
-const API_BASE = (EXPLICIT_BASE || "http://127.0.0.1:8000").replace(/\/+$/, "");
-const NETWORK_ENABLED =
-  Boolean(EXPLICIT_BASE) ||
-  (typeof import.meta !== "undefined" && Boolean(import.meta.env?.DEV));
+    : DEFAULT_PROD_API;
+const API_BASE = (EXPLICIT_BASE || DEFAULT_PROD_API).replace(/\/+$/, "");
+const NETWORK_ENABLED = true;
 
 /* Render's free tier sleeps after inactivity; waking it can take 45-90s.
    Requests wait up to 75s and retry transient network/5xx failures. */
@@ -595,6 +594,21 @@ async function getOrAcquireToken(userToken) {
   if (userToken) return userToken;
   if (cachedGuestToken) return cachedGuestToken;
 
+  // 1. Check logged-in user in localStorage
+  try {
+    const authStored = window?.localStorage?.getItem("campusmart.auth.v1");
+    if (authStored) {
+      const parsed = JSON.parse(authStored);
+      if (parsed?.token) {
+        cachedGuestToken = parsed.token;
+        return parsed.token;
+      }
+    }
+  } catch {
+    /* ignore */
+  }
+
+  // 2. Check previously cached guest token
   try {
     const stored = window?.localStorage?.getItem("campusmart.guest_token");
     if (stored) {
@@ -605,30 +619,28 @@ async function getOrAcquireToken(userToken) {
     /* localStorage unavailable */
   }
 
-  /* Seamless guest token for unauthenticated visitors so they get real live LLM responses */
+  // 3. Seamless instant guest registration for visitors to receive real live Gemini LLM responses
   if (NETWORK_ENABLED) {
     try {
-      const guestEmail = `visitor_${Date.now()}_${Math.random().toString(36).slice(2, 6)}@campus.edu`;
-      const sendRes = await postJson("/auth/send-otp", {
-        name: "Campus Visitor",
-        email: guestEmail,
-        password: "Visitor_Password_2026",
-      }, { retries: 0 });
-
-      if (sendRes?.fallback_otp_code) {
-        const verifyRes = await postJson("/auth/verify-otp", {
+      const guestEmail = `visitor_${Date.now()}_${Math.random().toString(36).slice(2, 7)}@campus.edu`;
+      const regRes = await postJson(
+        "/auth/register",
+        {
+          name: "Campus Student",
           email: guestEmail,
-          otp_code: sendRes.fallback_otp_code,
-        }, { retries: 0 });
+          password: "VisitorGuestPassword2026!",
+          college_name: "Campus Community",
+        },
+        { retries: 0 }
+      );
 
-        const token = pickToken(verifyRes);
-        if (token) {
-          cachedGuestToken = token;
-          try {
-            window?.localStorage?.setItem("campusmart.guest_token", token);
-          } catch {}
-          return token;
-        }
+      const token = pickToken(regRes);
+      if (token) {
+        cachedGuestToken = token;
+        try {
+          window?.localStorage?.setItem("campusmart.guest_token", token);
+        } catch {}
+        return token;
       }
     } catch {
       /* fallback to local catalog assistant if network is slow */
@@ -639,69 +651,185 @@ async function getOrAcquireToken(userToken) {
 }
 
 function generateCatalogAssistantReply(message, catalog = []) {
-  const lower = (message || "").toLowerCase();
+  const lower = (message || "").toLowerCase().trim();
+  const rawCatalog = Array.isArray(catalog) ? catalog : [];
 
-  // Bose / Audio check
-  if (lower.includes("bose") || lower.includes("speaker") || lower.includes("soundlink")) {
-    return {
-      reply:
-        "A typical second-hand Bluetooth speaker on campus trades for ₹4,000 to ₹7,500. Since the Bose SoundLink Flex is a premium water-resistant speaker (original retail ~₹15,000), a fair second-hand campus resale in good condition is ₹6,000 to ₹8,500. Be sure to check Bluetooth pairing, port cleanliness, and battery longevity before finalizing!",
-      source: "catalog",
-      recommendedProductIds: [],
-    };
-  }
+  // Stop words to remove for item matching
+  const stopWords = new Set([
+    "what", "is", "a", "an", "the", "for", "in", "on", "at", "to", "of", "and", "or",
+    "price", "fair", "second-hand", "secondhand", "resale", "used", "rate", "cost",
+    "campus", "college", "student", "selling", "buy", "buying", "sell", "show", "me",
+    "best", "deals", "deal", "cheap", "should", "pay", "i", "can", "get", "how", "much",
+    "about", "this", "item", "good", "condition", "please", "suggest", "valuation",
+  ]);
 
-  // Under ₹500 or budget deals
-  if (lower.includes("500") || lower.includes("cheap") || lower.includes("deal") || lower.includes("budget")) {
-    const cheapItems = catalog.filter((p) => {
+  const words = lower
+    .replace(/[^a-z0-9\s]/g, " ")
+    .split(/\s+/)
+    .filter((w) => w.length >= 2 && !stopWords.has(w));
+
+  // Check if query is looking for budget/cheap deals
+  const isBudgetQuery =
+    lower.includes("500") ||
+    lower.includes("cheap") ||
+    lower.includes("budget") ||
+    lower.includes("deal") ||
+    lower.includes("under");
+
+  if (isBudgetQuery && rawCatalog.length > 0) {
+    const budgetLimitMatch = lower.match(/(?:under|below|max|within|upto|up to|rs\.?|inr|₹)\s*(\d{2,6})/);
+    const maxBudget = budgetLimitMatch ? parseInt(budgetLimitMatch[1], 10) : 600;
+
+    const budgetItems = rawCatalog.filter((p) => {
       const price = Number(p.listed_price ?? p.suggested_price);
-      return Number.isFinite(price) && price > 0 && price <= 600;
+      return Number.isFinite(price) && price > 0 && price <= maxBudget;
     });
 
-    if (cheapItems.length > 0) {
-      const list = cheapItems
-        .slice(0, 3)
-        .map((p) => `• ${p.title} (₹${p.listed_price || p.suggested_price})`)
+    if (budgetItems.length > 0) {
+      const topItems = budgetItems.slice(0, 3);
+      const list = topItems
+        .map((p) => `• ${p.title} (₹${p.listed_price || p.suggested_price} · ${p.condition || "Fair"})`)
         .join("\n");
       return {
-        reply: `Here are great student budget deals currently in our campus catalog:\n\n${list}\n\nAll items are posted by verified students with transparent condition checks!`,
+        reply: `Here are great student budget deals under ₹${maxBudget} currently live in our campus catalog:\n\n${list}\n\nAll items are posted by verified students with transparent condition checks!`,
         source: "catalog",
-        recommendedProductIds: cheapItems.map((p) => p.id).filter(Boolean),
+        recommendedProductIds: topItems.map((p) => p.id).filter(Boolean),
       };
     }
-
-    return {
-      reply:
-        "Everyday essentials like used engineering textbooks, lab manuals, drafters, and scientific calculators frequently list between ₹200 and ₹500 on campus. Check back between classes or download the app to get instant alerts when fresh budget items go live!",
-      source: "catalog",
-      recommendedProductIds: [],
-    };
   }
 
-  // Calculator / Lab gear
+  // Dynamic Catalog Keyword Search
+  if (words.length > 0 && rawCatalog.length > 0) {
+    const scored = rawCatalog
+      .map((item) => {
+        const itemText = `${item.title || ""} ${item.category || ""} ${item.description || ""} ${(item.ai_tags || []).join(" ")}`.toLowerCase();
+        let matchScore = 0;
+        for (const word of words) {
+          if (itemText.includes(word)) matchScore += 1;
+        }
+        return { item, matchScore };
+      })
+      .filter((entry) => entry.matchScore > 0)
+      .sort((a, b) => b.matchScore - a.matchScore);
+
+    if (scored.length > 0) {
+      const topMatches = scored.slice(0, 3).map((s) => s.item);
+      const prices = topMatches
+        .map((p) => Number(p.listed_price ?? p.suggested_price))
+        .filter((pr) => Number.isFinite(pr) && pr > 0);
+      const minP = prices.length > 0 ? Math.min(...prices) : null;
+      const maxP = prices.length > 0 ? Math.max(...prices) : null;
+
+      const itemsList = topMatches
+        .map(
+          (p) =>
+            `• ${p.title} — ₹${p.listed_price || p.suggested_price} (${p.condition || "Fair"} condition · ${p.college_name || "Campus Community"})`
+        )
+        .join("\n");
+
+      const priceSummary =
+        minP !== null && maxP !== null
+          ? minP === maxP
+            ? `Current campus listing price is ₹${minP}.`
+            : `Current campus listing prices range from ₹${minP} to ₹${maxP}.`
+          : "";
+
+      return {
+        reply: `Based on verified campus catalog listings, here are items matching your query:\n\n${itemsList}\n\n${priceSummary} Verified student sellers offer 4-angle photo inspections before you meet up!`,
+        source: "catalog",
+        recommendedProductIds: topMatches.map((p) => p.id).filter(Boolean),
+      };
+    }
+  }
+
+  // Category & Domain Benchmarks when exact catalog item is not currently active
   if (lower.includes("calculator") || lower.includes("casio") || lower.includes("fx-")) {
     return {
       reply:
-        "A standard Casio FX-991ES Plus or FX-991CW scientific calculator typically lists between ₹500 and ₹850 in good condition (retail is ₹1,300–₹1,600). Make sure the solar cell and all matrix keys are responsive!",
+        "For scientific calculators like Casio FX-991ES Plus or FX-991CW (retail ₹1,300–₹1,600), fair second-hand campus pricing is typically ₹500 to ₹750 in good condition. Be sure to check that the solar cell is working, all buttons are responsive, and the plastic slide-on cover is intact!",
       source: "catalog",
       recommendedProductIds: [],
     };
   }
 
-  // Textbook check
-  if (lower.includes("book") || lower.includes("textbook") || lower.includes("notes")) {
+  if (lower.includes("drafter") || lower.includes("drawing") || lower.includes("sheet")) {
     return {
       reply:
-        "Standard university textbooks in fair-to-good condition usually sell for 40% to 55% of their printed MRP (typically ₹250 to ₹600). Editions with clean pages and undamaged bindings command the best value.",
+        "An engineering mini drafter (retail ₹600–₹750) typically sells on campus for ₹180 to ₹320. First-year (FE) students need them for Engineering Graphics and Drawing submissions. Make sure the clamp screw tightens securely onto drawing tables!",
       source: "catalog",
       recommendedProductIds: [],
     };
   }
 
-  // Default campus assistant reply
+  if (
+    lower.includes("book") ||
+    lower.includes("textbook") ||
+    lower.includes("math") ||
+    lower.includes("nirali") ||
+    lower.includes("techmax") ||
+    lower.includes("notes")
+  ) {
+    return {
+      reply:
+        "Standard university textbooks in fair-to-good condition usually sell for 40% to 55% of their printed MRP (typically ₹200 to ₹400). Clean editions without excessive pen markings command the highest resale value.",
+      source: "catalog",
+      recommendedProductIds: [],
+    };
+  }
+
+  if (lower.includes("bose") || lower.includes("speaker") || lower.includes("soundlink") || lower.includes("audio")) {
+    return {
+      reply:
+        "A typical second-hand Bluetooth speaker on campus trades for ₹4,000 to ₹7,500. Since the Bose SoundLink Flex is a premium water-resistant speaker (original retail ~₹15,000), a fair second-hand campus resale in good condition is ₹6,000 to ₹8,500. Always check Bluetooth pairing, port cleanliness, and battery longevity before finalizing!",
+      source: "catalog",
+      recommendedProductIds: [],
+    };
+  }
+
+  if (lower.includes("laptop") || lower.includes("macbook") || lower.includes("thinkpad") || lower.includes("computer")) {
+    return {
+      reply:
+        "Student coding laptops generally resell on campus for ₹14,000 to ₹28,000 depending on CPU generation, RAM (8GB vs 16GB), and battery health. Always check keyboard keys, charger cord condition, and run a battery health test before paying.",
+      source: "catalog",
+      recommendedProductIds: [],
+    };
+  }
+
+  if (lower.includes("apron") || lower.includes("coat") || lower.includes("lab") || lower.includes("multimeter")) {
+    return {
+      reply:
+        "Lab essentials like white cotton aprons resell for ₹120 to ₹220 (retail ~₹450), while digital multimeters trade for ₹150 to ₹300. These are high-demand items during first-year chemistry, pharmacy, and electrical workshop labs.",
+      source: "catalog",
+      recommendedProductIds: [],
+    };
+  }
+
+  if (lower.includes("cycle") || lower.includes("bicycle")) {
+    return {
+      reply:
+        "Campus bicycles in good rideable condition typically trade for ₹1,200 to ₹2,800 depending on gear status and tire condition. Inspect brakes, tire pressure, and chain rust before closing the deal.",
+      source: "catalog",
+      recommendedProductIds: [],
+    };
+  }
+
+  if (lower.includes("kettle") || lower.includes("iron") || lower.includes("induction") || lower.includes("cooler") || lower.includes("hostel")) {
+    return {
+      reply:
+        "Hostel appliances like electric kettles, dry irons, and room coolers typically sell for 45%–60% of retail (₹350 to ₹800). Ensure cords and heating elements are safely insulated without frayed wires.",
+      source: "catalog",
+      recommendedProductIds: [],
+    };
+  }
+
+  // Extract clean subject name if possible
+  const cleanSubject =
+    words.length > 0
+      ? words.slice(0, 4).join(" ")
+      : "second-hand campus items";
+
   return {
-    reply:
-      "On CampusMart AI, items are evaluated using 4-angle photo verification and campus market demand in India. Resale prices typically range from 45% to 65% of original retail for electronics and 40% to 50% for books in good condition. Download the Android app to snap 4 photos and get an instant AI valuation!",
+    reply: `On CampusMart AI, fair second-hand pricing for ${cleanSubject} typically ranges from 45% to 65% of original retail for electronics and 40% to 50% for books and lab equipment in good condition. You can also post an ISO request on our "Wanted on Campus" board to get quick responses from seniors!`,
     source: "catalog",
     recommendedProductIds: [],
   };
@@ -717,39 +845,62 @@ export async function askCampusMartAi({
     return { reply: "What item or price would you like to check?", source: "local" };
   }
 
-  const activeToken = await getOrAcquireToken(token);
+  let activeToken = await getOrAcquireToken(token);
 
-  if (NETWORK_ENABLED && activeToken) {
-    try {
-      const response = await fetchWithRetry(
-        `${API_BASE}/ai/chat`,
-        {
-          method: "POST",
-          headers: {
-            Accept: "application/json",
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${activeToken}`,
-          },
-          body: JSON.stringify({
-            message: message.trim(),
-            history: history.slice(-6),
-          }),
-        },
-        { retries: 1, timeoutMs: 35000 }
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data?.reply) {
-          return {
-            reply: data.reply,
-            source: data.source || "llm",
-            recommendedProductIds: data.recommended_product_ids || [],
-          };
-        }
+  if (NETWORK_ENABLED) {
+    for (let attempt = 0; attempt < 2; attempt++) {
+      if (!activeToken) {
+        activeToken = await getOrAcquireToken(token);
       }
-    } catch {
-      /* Network timeout or sleep — fall through gracefully */
+      if (!activeToken) break;
+
+      try {
+        const response = await fetchWithRetry(
+          `${API_BASE}/ai/chat`,
+          {
+            method: "POST",
+            headers: {
+              Accept: "application/json",
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${activeToken}`,
+            },
+            body: JSON.stringify({
+              message: message.trim(),
+              history: history.slice(-6).map((h) => ({
+                role: h.role === "user" ? "user" : "assistant",
+                content: String(h.content || ""),
+              })),
+            }),
+          },
+          { retries: 1, timeoutMs: 35000 }
+        );
+
+        if (response.status === 401 && attempt === 0) {
+          // Token expired or invalid; clear and re-register
+          cachedGuestToken = null;
+          try {
+            window?.localStorage?.removeItem("campusmart.guest_token");
+          } catch {}
+          activeToken = null;
+          continue;
+        }
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data?.reply) {
+            return {
+              reply: data.reply,
+              source: data.source || "llm",
+              recommendedProductIds: data.recommended_product_ids || [],
+              sessionId: data.session_id,
+              sessionTitle: data.session_title,
+            };
+          }
+        }
+      } catch {
+        /* Network timeout or backend waking up — fall through gracefully */
+        break;
+      }
     }
   }
 
@@ -1074,8 +1225,13 @@ export async function estimatePriceWithAi({
         if (data && typeof data.is_valid_product === "boolean") {
           return {
             ...data,
+            title: data.title || data.identified_title || title || "Campus Item",
+            suggested_price_inr: data.suggested_price_inr ?? data.suggested_price ?? null,
+            price_min_inr: data.price_min_inr ?? data.price_range_min ?? null,
+            price_max_inr: data.price_max_inr ?? data.price_range_max ?? null,
+            retail_price_inr: data.retail_price_inr ?? data.retail_mrp_inr ?? null,
             condition_notes: cleanAiNotes(data.condition_notes),
-            source: "backend-estimate-price",
+            source: data.ai_provider_used || "backend-estimate-price",
           };
         }
       }
