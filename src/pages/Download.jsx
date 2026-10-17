@@ -89,7 +89,12 @@ function SignedInBar({ user, onSignOut }) {
               ★ {trust !== null ? trust.toFixed(1) : "5.0"} / 5 Verified Student
             </span>
           </p>
-          <p className="text-xs text-muted truncate">{user?.email}</p>
+          <p className="text-xs text-muted truncate">
+            {user?.email}
+            {user?.college_name && (
+              <span className="font-medium text-ink-soft"> · {user.college_name}</span>
+            )}
+          </p>
         </div>
       </div>
       <button

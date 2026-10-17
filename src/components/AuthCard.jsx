@@ -1,14 +1,17 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ArrowLeft,
+  GraduationCap,
   KeyRound,
   Loader2,
   LogIn,
   MailCheck,
+  Search,
   ShieldCheck,
   UserPlus,
+  X,
 } from "lucide-react";
-import { ApiError } from "../api/client.js";
+import { ApiError, searchColleges } from "../api/client.js";
 import { useAuth } from "../hooks/useAuth.js";
 import { useWarmup } from "../hooks/useWarmup.js";
 import WarmupBanner from "./WarmupBanner.jsx";
@@ -21,6 +24,194 @@ function friendlyError(error) {
   return error.message || "Something went wrong. Please try again.";
 }
 
+function CollegePicker({ value, onChange, disabled }) {
+  const [open, setOpen] = useState(false);
+  const [query, setQuery] = useState("");
+  const [results, setResults] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    setLoading(true);
+    const timer = setTimeout(async () => {
+      try {
+        const list = await searchColleges(query);
+        if (active) setResults(list);
+      } catch {
+        if (active) setResults([]);
+      } finally {
+        if (active) setLoading(false);
+      }
+    }, 120);
+
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
+  }, [query]);
+
+  if (value) {
+    return (
+      <div>
+        <div className="flex items-center justify-between">
+          <label className="text-[13px] font-medium text-ink">
+            College / Institute
+          </label>
+          <span className="text-[11px] font-medium text-accent">CET Cell Directory</span>
+        </div>
+        <div className="mt-2 flex items-center justify-between gap-3 rounded-xl border border-accent/25 bg-accent-soft/40 p-3 shadow-xs">
+          <div className="flex min-w-0 items-center gap-2.5">
+            <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg border border-line bg-card text-accent">
+              <GraduationCap className="h-4 w-4" aria-hidden="true" />
+            </span>
+            <div className="min-w-0">
+              <p className="truncate text-[13px] font-semibold text-ink">{value}</p>
+              <p className="text-[11px] text-muted">Verified campus community</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            disabled={disabled}
+            onClick={() => {
+              onChange("");
+              setQuery("");
+              setOpen(true);
+            }}
+            className="shrink-0 rounded-md px-2.5 py-1 text-xs font-semibold text-accent transition hover:bg-card hover:underline"
+          >
+            Change
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="relative">
+      <div className="flex items-center justify-between">
+        <label htmlFor="auth-college-search" className="text-[13px] font-medium text-ink">
+          College / Institute
+        </label>
+        <span className="text-[11px] text-faint">CET Cell Directory</span>
+      </div>
+
+      <div className="relative mt-2">
+        <Search
+          className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-faint"
+          aria-hidden="true"
+        />
+        <input
+          id="auth-college-search"
+          type="text"
+          value={query}
+          disabled={disabled}
+          onFocus={() => setOpen(true)}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setOpen(true);
+          }}
+          placeholder="Search COEP, VJTI, PICT, or CET code…"
+          className="input pl-10 pr-9"
+          autoComplete="off"
+        />
+        {query && (
+          <button
+            type="button"
+            onClick={() => setQuery("")}
+            className="absolute right-2.5 top-1/2 flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full text-faint hover:bg-sunken hover:text-ink"
+          >
+            <X className="h-3.5 w-3.5" aria-hidden="true" />
+          </button>
+        )}
+      </div>
+
+      {open && (
+        <>
+          <div
+            className="fixed inset-0 z-10"
+            onClick={() => setOpen(false)}
+            aria-hidden="true"
+          />
+          <div className="absolute left-0 right-0 top-full z-20 mt-1.5 max-h-56 overflow-y-auto rounded-xl border border-line bg-card p-1.5 shadow-lg scroll-slim">
+            {loading && (
+              <div className="flex items-center justify-center gap-2 py-4 text-xs text-muted">
+                <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                Searching CET Cell directory…
+              </div>
+            )}
+
+            {!loading && results.length === 0 && (
+              <div className="p-3 text-center">
+                <p className="text-xs text-muted">No CET college found matching "{query}"</p>
+                {query.trim() && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onChange(query.trim());
+                      setOpen(false);
+                    }}
+                    className="mt-2 text-xs font-semibold text-accent hover:underline"
+                  >
+                    Use "{query.trim()}" as my campus →
+                  </button>
+                )}
+              </div>
+            )}
+
+            {!loading &&
+              results.map((c) => (
+                <button
+                  key={c.code ? `${c.code}-${c.name}` : c.name}
+                  type="button"
+                  onClick={() => {
+                    onChange(c.shortName || c.name);
+                    setOpen(false);
+                  }}
+                  className="flex w-full flex-col items-start rounded-lg px-3 py-2 text-left transition hover:bg-sunken"
+                >
+                  <div className="flex w-full items-center justify-between gap-2">
+                    <span className="text-[13px] font-medium text-ink">
+                      {c.shortName || c.name}
+                    </span>
+                    {c.code && (
+                      <span className="shrink-0 rounded bg-sunken px-1.5 py-0.5 text-[10px] font-mono font-medium text-muted">
+                        CET {c.code}
+                      </span>
+                    )}
+                  </div>
+                  <span className="line-clamp-1 text-[11px] text-faint">
+                    {c.name} {c.city ? `· ${c.city}` : ""}
+                  </span>
+                </button>
+              ))}
+
+            {!loading &&
+              query.trim() &&
+              !results.some(
+                (r) =>
+                  (r.shortName || r.name).toLowerCase() ===
+                  query.trim().toLowerCase()
+              ) && (
+                <div className="mt-1 border-t border-line/60 pt-1">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onChange(query.trim());
+                      setOpen(false);
+                    }}
+                    className="w-full rounded-lg px-3 py-2 text-left text-xs text-muted hover:bg-sunken hover:text-ink"
+                  >
+                    Not listed? Use <span className="font-semibold text-ink">"{query.trim()}"</span>
+                  </button>
+                </div>
+              )}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 export default function AuthCard() {
   const { signIn, sendOtp, resendOtp, verifyOtp } = useAuth();
 
@@ -29,6 +220,7 @@ export default function AuthCard() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [collegeName, setCollegeName] = useState("");
   const [otp, setOtp] = useState("");
   const [fallbackOtp, setFallbackOtp] = useState("");
   const [error, setError] = useState("");
@@ -81,6 +273,7 @@ export default function AuthCard() {
         name: name.trim(),
         email: email.trim(),
         password,
+        college_name: collegeName.trim() || undefined,
       });
       if (res?.fallback_otp_code) {
         setFallbackOtp(String(res.fallback_otp_code));
@@ -117,6 +310,7 @@ export default function AuthCard() {
       verifyOtp({
         email: email.trim(),
         otp: otp.trim(),
+        college_name: collegeName.trim() || undefined,
       })
     );
   };
@@ -258,6 +452,12 @@ export default function AuthCard() {
             />
           </div>
 
+          <CollegePicker
+            value={collegeName}
+            onChange={setCollegeName}
+            disabled={inputDisabled}
+          />
+
           <div>
             <label htmlFor="auth-signup-email" className="text-[13px] font-medium text-ink">
               Campus email
@@ -321,6 +521,7 @@ export default function AuthCard() {
                   verifyOtp({
                     email: email.trim(),
                     otp: fallbackOtp,
+                    college_name: collegeName.trim() || undefined,
                   })
                 );
               }}
@@ -362,7 +563,12 @@ export default function AuthCard() {
               className="input mt-2 text-center text-lg tracking-[0.4em] tabular-nums"
             />
             <p className="mt-2 text-xs text-faint">
-              Sent to <span className="text-ink-soft">{email}</span>
+              Sent to <span className="font-medium text-ink-soft">{email}</span>
+              {collegeName && (
+                <span className="mt-0.5 block font-medium text-accent">
+                  Campus: {collegeName}
+                </span>
+              )}
             </p>
           </div>
 

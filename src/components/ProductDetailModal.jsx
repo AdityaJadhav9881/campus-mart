@@ -3,6 +3,7 @@ import {
   BadgeCheck,
   ChevronLeft,
   ChevronRight,
+  GraduationCap,
   ImageOff,
   Package,
   ShieldCheck,
@@ -209,10 +210,20 @@ export default function ProductDetailModal({ product, onClose }) {
         <div className="flex items-start justify-between gap-4 border-b border-line px-5 py-4 sm:px-6">
           <div className="min-w-0">
             <h2 className="text-xl leading-snug sm:text-2xl">{title}</h2>
-            <p className="mt-1 text-[13px] text-muted">
-              {conditionLabel(product?.condition)}
-              <span className="text-faint"> · inspected listing</span>
-            </p>
+            <div className="mt-1 flex flex-wrap items-center gap-2 text-[13px] text-muted">
+              <span>{conditionLabel(product?.condition)}</span>
+              <span className="text-faint">·</span>
+              <span className="text-faint">inspected listing</span>
+              {product?.college_name && (
+                <>
+                  <span className="text-faint">·</span>
+                  <span className="inline-flex items-center gap-1 rounded-full border border-line bg-sunken px-2.5 py-0.5 text-xs font-medium text-ink-soft">
+                    <GraduationCap className="h-3.5 w-3.5 text-accent" aria-hidden="true" />
+                    {product.college_name}
+                  </span>
+                </>
+              )}
+            </div>
           </div>
           <button
             type="button"
@@ -303,10 +314,18 @@ export default function ProductDetailModal({ product, onClose }) {
               </span>
               <div className="min-w-0">
                 <p className="truncate text-sm font-medium text-ink">{sellerName}</p>
-                <p className="mt-0.5 flex items-center gap-1.5 text-[11px] text-faint">
-                  <ShieldCheck className="h-3 w-3 text-positive" aria-hidden="true" />
-                  Verified campus email
-                </p>
+                <div className="mt-0.5 flex flex-wrap items-center gap-x-2 gap-y-0.5 text-[11px] text-faint">
+                  <span className="flex items-center gap-1 text-positive">
+                    <ShieldCheck className="h-3 w-3" aria-hidden="true" />
+                    Verified campus email
+                  </span>
+                  {product?.college_name && (
+                    <span className="flex items-center gap-1 text-ink-soft font-medium">
+                      <GraduationCap className="h-3 w-3 text-accent" aria-hidden="true" />
+                      {product.college_name}
+                    </span>
+                  )}
+                </div>
               </div>
             </div>
 

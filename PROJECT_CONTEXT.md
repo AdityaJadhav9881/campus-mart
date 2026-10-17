@@ -235,10 +235,11 @@ All requests are dispatched through `src/api/client.js` with exponential backoff
 | Route | Method | Payload / Headers | Response & Purpose |
 |---|---|---|---|
 | `/` | `GET` | None | Health check probe. Returns `200 OK` when backend is awake. |
-| `/products/` | `GET` | None | Returns array of products. Normalized into `{ id, title, description, category, condition, image_url, image_urls, ai_tags, ai_condition_notes, seller_name, listed_price, suggested_price, seller_trust_score, created_at }`. |
+| `/products/` | `GET` | None | Returns array of products. Normalized into `{ id, title, description, category, condition, image_url, image_urls, ai_tags, ai_condition_notes, seller_name, college_name, listed_price, suggested_price, seller_trust_score, created_at }`. |
+| `/colleges` | `GET` | `?q=<query>` | Maharashtra State CET Cell College directory search. Returns matching institutions (`code`, `name`, `shortName`, `city`). Falls back to instantaneous built-in local directory in `src/data/colleges.js`. |
 | `/stats/` | `GET` | None | Returns campus metrics (`listings`, `students`). Falls back to null. |
-| `/auth/send-otp` | `POST` | `{ name, email, password }` | Sends 6-digit OTP. Returns `{ message, email, email_delivered, fallback_otp_code }`. |
-| `/auth/verify-otp` | `POST` | `{ email, otp_code }` | Verifies OTP. Returns `{ access_token, token_type, user: { id, name, email, trust_score } }`. |
+| `/auth/send-otp` | `POST` | `{ name, email, password, college_name? }` | Sends 6-digit OTP. Returns `{ message, email, email_delivered, fallback_otp_code }`. |
+| `/auth/verify-otp` | `POST` | `{ email, otp_code, college_name? }` | Verifies OTP. Returns `{ access_token, token_type, user: { id, name, email, trust_score, college_name } }`. |
 | `/auth/resend-otp` | `POST` | `{ email }` | Resends OTP. Returns `{ message, fallback_otp_code }`. |
 | `/auth/login` | `POST` | `{ email, password }` | Authenticates existing user. Returns `{ access_token, user }`. |
 | `/ai/chat` | `POST` | `Authorization: Bearer <token>`<br>`{ message, history }` | **Catalog-Aware AI Assistant:** Queries live Gemini LLM seeded with PostgreSQL catalog. Returns `{ reply, source: "llm"|"catalog", recommended_product_ids }`. Supported for guests via transparent session token. |
@@ -270,11 +271,11 @@ All requests are dispatched through `src/api/client.js` with exponential backoff
    ```
    mailto:martaicampus@gmail.com?subject=CampusMart%20AI%20Support%20Inquiry&body=Hi%20CampusMart%20Support%20Team,%0A%0AI%20need%20help%20with:
    ```
-3. **Data Separation:** Copy and static models belong in `src/data/` (`site.js`, `sandbox.js`, `demoListings.js`); UI components only present and wire interactions.
+3. **Data Separation:** Copy and static models belong in `src/data/` (`site.js`, `sandbox.js`, `demoListings.js`, `colleges.js`); UI components only present and wire interactions.
 4. **Build Verification:** Always execute `npm run build` after changes to verify zero compile or bundle errors before pushing.
 5. **Session Handling:** User sessions are stored under the localStorage key `campusmart.auth.v1` and guest tokens under `campusmart.guest_token`.
 6. **Accessibility:** Ensure all modals, accordions, and dropdowns support keyboard navigation (Enter, Space, Tab, Escape) and proper ARIA labeling.
 
 ---
 
-*Last updated: 2026-10-16. Covers full flagship upgrade across commit `1d00e31` (live AI assistant, OTP auto-fill banner, 4-photo interactive gallery, semantic search, 5-way storefront sorting, and student verified badge).*
+*Last updated: 2026-10-17. Added Maharashtra State CET Cell College directory integration, searchable institute selector on sign-up, college badge rendering on product cards and detail modal, and campus filtering on /marketplace.*

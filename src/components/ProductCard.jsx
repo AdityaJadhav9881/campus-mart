@@ -1,4 +1,4 @@
-import { ImageOff, Star } from "lucide-react";
+import { GraduationCap, ImageOff, Star } from "lucide-react";
 import {
   conditionLabel,
   productPrice,
@@ -76,6 +76,12 @@ export default function ProductCard({ product, onOpen }) {
       <div className="flex flex-1 flex-col gap-3 p-4">
         <div className="min-w-0">
           <h3 className="line-clamp-2 text-base leading-snug">{product?.title}</h3>
+          {product?.college_name && (
+            <p className="mt-1 flex items-center gap-1.5 text-xs text-muted">
+              <GraduationCap className="h-3.5 w-3.5 shrink-0 text-accent" aria-hidden="true" />
+              <span className="truncate font-medium text-ink-soft">{product.college_name}</span>
+            </p>
+          )}
           {product?.description ? (
             <p className="mt-1.5 line-clamp-2 text-[13px] leading-relaxed text-muted">
               {product.description}

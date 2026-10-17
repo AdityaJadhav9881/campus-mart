@@ -1,5 +1,12 @@
 import { useMemo, useState } from "react";
-import { ArrowUpDown, PackageSearch, Search, SlidersHorizontal, X } from "lucide-react";
+import {
+  ArrowUpDown,
+  GraduationCap,
+  PackageSearch,
+  Search,
+  SlidersHorizontal,
+  X,
+} from "lucide-react";
 import { useLiveFeed } from "../hooks/useLiveFeed.js";
 import { useWarmup } from "../hooks/useWarmup.js";
 import { demoListings } from "../data/demoListings.js";
@@ -29,6 +36,7 @@ export default function Marketplace() {
   const { products, online, loading, refresh } = useLiveFeed();
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("All");
+  const [college, setCollege] = useState("All");
   const [sortBy, setSortBy] = useState("featured");
   const [selected, setSelected] = useState(null);
   const warmup = useWarmup(loading);
@@ -44,16 +52,26 @@ export default function Marketplace() {
     return ["All", ...[...set].sort()];
   }, [source]);
 
+  const colleges = useMemo(() => {
+    const set = new Set();
+    for (const product of source) {
+      if (product.college_name) set.add(product.college_name);
+    }
+    return ["All", ...[...set].sort()];
+  }, [source]);
+
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase();
     const list = source.filter((product) => {
       if (category !== "All" && product.category !== category) return false;
+      if (college !== "All" && product.college_name !== college) return false;
       if (!needle) return true;
       const tagsStr = Array.isArray(product.ai_tags) ? product.ai_tags.join(" ") : "";
       const notesStr = product.ai_condition_notes || "";
+      const collegeStr = product.college_name || "";
       const haystack = `${product.title} ${product.description ?? ""} ${
         product.category ?? ""
-      } ${tagsStr} ${notesStr}`.toLowerCase();
+      } ${collegeStr} ${tagsStr} ${notesStr}`.toLowerCase();
       return haystack.includes(needle);
     });
 
@@ -84,11 +102,16 @@ export default function Marketplace() {
     });
   }, [source, query, category, sortBy]);
 
-  const hasFilters = query.trim() !== "" || category !== "All" || sortBy !== "featured";
+  const hasFilters =
+    query.trim() !== "" ||
+    category !== "All" ||
+    college !== "All" ||
+    sortBy !== "featured";
 
   const clearFilters = () => {
     setQuery("");
     setCategory("All");
+    setCollege("All");
     setSortBy("featured");
   };
 
@@ -160,24 +183,50 @@ export default function Marketplace() {
             ))}
           </div>
 
-          <div className="flex shrink-0 items-center justify-between gap-3 pt-1 sm:pt-0">
-            <div className="flex items-center gap-1.5">
-              <span className="text-xs text-faint shrink-0 flex items-center gap-1">
-                <ArrowUpDown className="h-3 w-3" aria-hidden="true" />
-                Sort:
-              </span>
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                aria-label="Sort listings"
-                className="h-8.5 rounded-lg border border-line bg-card px-2.5 text-xs font-medium text-ink outline-none transition hover:border-line-strong focus:border-accent"
-              >
-                <option value="featured">Featured</option>
-                <option value="price-asc">Price: Low to High</option>
-                <option value="price-desc">Price: High to Low</option>
-                <option value="best-value">Best Value vs AI Estimate</option>
-                <option value="trust-desc">Highest Seller Trust</option>
-              </select>
+          <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 pt-1 sm:pt-0">
+            <div className="flex flex-wrap items-center gap-2.5">
+              {colleges.length > 1 && (
+                <div className="flex items-center gap-1.5">
+                  <span className="flex shrink-0 items-center gap-1 text-xs text-faint">
+                    <GraduationCap className="h-3.5 w-3.5 text-accent" aria-hidden="true" />
+                    Campus:
+                  </span>
+                  <select
+                    value={college}
+                    onChange={(e) => setCollege(e.target.value)}
+                    aria-label="Filter by College"
+                    className="h-8.5 max-w-[190px] truncate rounded-lg border border-line bg-card px-2.5 text-xs font-medium text-ink outline-none transition hover:border-line-strong focus:border-accent"
+                  >
+                    <option value="All">All Campuses</option>
+                    {colleges
+                      .filter((c) => c !== "All")
+                      .map((c) => (
+                        <option key={c} value={c}>
+                          {c}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+              )}
+
+              <div className="flex items-center gap-1.5">
+                <span className="flex shrink-0 items-center gap-1 text-xs text-faint">
+                  <ArrowUpDown className="h-3 w-3" aria-hidden="true" />
+                  Sort:
+                </span>
+                <select
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value)}
+                  aria-label="Sort listings"
+                  className="h-8.5 rounded-lg border border-line bg-card px-2.5 text-xs font-medium text-ink outline-none transition hover:border-line-strong focus:border-accent"
+                >
+                  <option value="featured">Featured</option>
+                  <option value="price-asc">Price: Low to High</option>
+                  <option value="price-desc">Price: High to Low</option>
+                  <option value="best-value">Best Value vs AI Estimate</option>
+                  <option value="trust-desc">Highest Seller Trust</option>
+                </select>
+              </div>
             </div>
 
             <p className="shrink-0 text-xs tabular-nums text-faint lg:pl-1">

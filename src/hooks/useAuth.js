@@ -55,6 +55,7 @@ export function useAuth() {
         email: user?.email || "",
         id: user?.id ?? null,
         trust_score: user?.trust_score ?? 5.0,
+        college_name: user?.college_name || null,
       },
     };
     writeStored(next);
@@ -74,8 +75,8 @@ export function useAuth() {
   );
 
   const sendOtp = useCallback(
-    async ({ name, email, password }) =>
-      authSendOtp({ name, email, password }),
+    async ({ name, email, password, college_name }) =>
+      authSendOtp({ name, email, password, college_name }),
     []
   );
 
@@ -85,8 +86,8 @@ export function useAuth() {
   );
 
   const verifyOtp = useCallback(
-    async ({ email, otp }) => {
-      const { token, user } = await authVerifyOtp({ email, otp });
+    async ({ email, otp, college_name }) => {
+      const { token, user } = await authVerifyOtp({ email, otp, college_name });
       if (!startSession(token, user)) {
         throw new Error("Verification succeeded but no session token was returned.");
       }
@@ -96,8 +97,8 @@ export function useAuth() {
   );
 
   const register = useCallback(
-    async ({ name, email, password }) => {
-      const { token, user } = await authRegister({ name, email, password });
+    async ({ name, email, password, college_name }) => {
+      const { token, user } = await authRegister({ name, email, password, college_name });
       if (!startSession(token, user)) {
         throw new Error("Sign up succeeded but no session token was returned.");
       }

@@ -1,3 +1,5 @@
+import { fallbackSearchColleges } from "../data/colleges.js";
+
 const EXPLICIT_BASE = import.meta.env.VITE_API_BASE_URL;
 const API_BASE = (EXPLICIT_BASE || "http://127.0.0.1:8000").replace(/\/+$/, "");
 const NETWORK_ENABLED = Boolean(EXPLICIT_BASE) || import.meta.env.DEV;
@@ -118,6 +120,10 @@ function normalizeProduct(raw) {
     seller_name:
       typeof raw?.seller_name === "string" && raw.seller_name.trim() !== ""
         ? raw.seller_name.trim()
+        : null,
+    college_name:
+      typeof raw?.college_name === "string" && raw.college_name.trim() !== ""
+        ? raw.college_name.trim()
         : null,
     listed_price: raw?.listed_price ?? null,
     suggested_price: raw?.suggested_price ?? null,
@@ -300,6 +306,7 @@ export function pickUser(payload, fallback = {}) {
       email: source.email ?? fallback.email ?? "",
       id: source.id ?? source.user_id ?? null,
       trust_score: source.trust_score ?? 5.0,
+      college_name: source.college_name ?? fallback.college_name ?? null,
     };
   }
 
@@ -307,6 +314,7 @@ export function pickUser(payload, fallback = {}) {
     name: fallback.name ?? fallback.email ?? "Student",
     email: fallback.email ?? "",
     trust_score: 5.0,
+    college_name: fallback.college_name ?? null,
   };
 }
 
@@ -315,8 +323,10 @@ export async function authLogin({ email, password }) {
   return { token: pickToken(body), user: pickUser(body, { email }) };
 }
 
-export async function authSendOtp({ name, email, password }) {
-  const body = await postJson("/auth/send-otp", { name, email, password });
+export async function authSendOtp({ name, email, password, college_name }) {
+  const payload = { name, email, password };
+  if (college_name) payload.college_name = college_name;
+  const body = await postJson("/auth/send-otp", payload);
   return body;
 }
 
@@ -325,17 +335,61 @@ export async function authResendOtp({ email }) {
   return body;
 }
 
-export async function authVerifyOtp({ email, otp }) {
+export async function authVerifyOtp({ email, otp, college_name }) {
   const body = await postJson("/auth/verify-otp", {
     email,
     otp_code: otp,
   });
-  return { token: pickToken(body), user: pickUser(body, { email }) };
+  return { token: pickToken(body), user: pickUser(body, { email, college_name }) };
 }
 
-export async function authRegister({ name, email, password }) {
-  const body = await postJson("/auth/register", { name, email, password });
-  return { token: pickToken(body), user: pickUser(body, { email, name }) };
+export async function authRegister({ name, email, password, college_name }) {
+  const payload = { name, email, password };
+  if (college_name) payload.college_name = college_name;
+  const body = await postJson("/auth/register", payload);
+  return { token: pickToken(body), user: pickUser(body, { email, name, college_name }) };
+}
+
+export async function searchColleges(query = "") {
+  const trimmed = (query || "").trim();
+  if (NETWORK_ENABLED) {
+    try {
+      const response = await fetchWithRetry(
+        `${API_BASE}/colleges?q=${encodeURIComponent(trimmed)}`,
+        { method: "GET", headers: { Accept: "application/json" } },
+        { retries: 0, timeoutMs: 3500 }
+      );
+      if (response.ok) {
+        const data = await response.json();
+        const list = Array.isArray(data)
+          ? data
+          : Array.isArray(data?.colleges)
+            ? data.colleges
+            : Array.isArray(data?.items)
+              ? data.items
+              : [];
+        if (list.length > 0) {
+          return list
+            .map((item) => {
+              if (typeof item === "string") {
+                return { name: item, shortName: item, code: null, city: null };
+              }
+              return {
+                name: item.name || item.college_name || item.title || "",
+                shortName: item.shortName || item.short_name || item.name || "",
+                code: item.code || item.institute_code || null,
+                city: item.city || item.district || null,
+              };
+            })
+            .filter((c) => c.name);
+        }
+      }
+    } catch {
+      /* Fallback to local Maharashtra CET Cell directory */
+    }
+  }
+
+  return fallbackSearchColleges(trimmed);
 }
 
 /* -------------------- AI Assistant & Catalog Chat -------------------- */
