@@ -122,7 +122,18 @@ The application is structured into 5 primary student-facing routes managed by `s
 
 ### Route 4: Price Estimator (`/sandbox` — `src/pages/Sandbox.jsx`)
 - **Headline:** *"Check what your item is worth"*
-- **Local Estimator Simulation:** Instant in-browser 3-agent pipeline simulation (`Photo & Category Check`, `Campus Market Value`, `Safety Check`) with photo dropzone, age slider, and condition selector.
+- **Live Google Gemini Vision & Market Valuation (`estimatePriceWithAi`):**
+  - Converts attached image to compressed Base64 data URL (max 1024px canvas) in <50ms.
+  - Queries `POST /ai/estimate-price` on `API_BASE` (with fallback to `POST /ai/chat` using live Google Gemini Vision + Google Search grounding).
+  - Stops auto-filling camera/chat filenames (`WhatsApp Image...`, `IMG_...`, `Screenshot_...`) into title; identifies true product title directly from photo inspection.
+- **Screenshot & Non-Product Rejection Card:**
+  - Automatically identifies and disqualifies phone/desktop screenshots, memes, and non-sellable images.
+  - Displays red rejected card (`❌ Invalid Image Detected (Screenshot / Non-Product)`) with explicit safety notices and `— (Not a sellable item)`.
+- **Real Online Market Valuation Card:**
+  - Displays identified product title and category.
+  - Displays new retail MRP in India (`₹`) vs recommended campus resale price (`₹`) with percentage savings badge.
+  - Displays fair campus range (`₹min – ₹max`).
+  - Displays AI inspection and market reasoning notes (`condition_notes`).
 - **Interactive "Ask CampusMart AI" Assistant:**
   - Real-time catalog-aware assistant wired to `POST /ai/chat` on the live Render FastAPI backend.
   - Auto-acquires a guest session token for unauthenticated visitors so questions never return 401.
