@@ -4,6 +4,24 @@ export const SUPPORT_EMAIL = "martaicampus@gmail.com";
 export const SUPPORT_MAILTO =
   "mailto:martaicampus@gmail.com?subject=CampusMart%20AI%20Support%20Inquiry&body=Hi%20CampusMart%20Support%20Team,%0A%0AI%20need%20help%20with:";
 
+export const BRANCHES = [
+  "All Branches",
+  "First Year (Common)",
+  "Computer / IT",
+  "Mechanical",
+  "Civil",
+  "Electrical / ENTC",
+  "Pharmacy",
+];
+
+export const ACADEMIC_YEARS = [
+  "All Years",
+  "FE (1st Year)",
+  "SE (2nd Year)",
+  "TE (3rd Year)",
+  "BE (Final Year)",
+];
+
 export const photoAngles = [
   {
     id: "front",

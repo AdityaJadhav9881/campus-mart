@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import {
   BadgeCheck,
+  Check,
   ChevronLeft,
   ChevronRight,
+  Copy,
   GraduationCap,
   ImageOff,
   Package,
@@ -14,11 +16,26 @@ import {
 } from "lucide-react";
 import { Link } from "../router/router.jsx";
 import {
+  buildWhatsAppShareUrl,
   conditionLabel,
+  inferAcademicMeta,
   productPrice,
   rupees,
   trustOutOf5,
 } from "../lib/format.js";
+
+function WhatsAppIcon({ className = "h-4 w-4" }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M17.472 14.382c-.301-.15-1.781-.878-2.057-.978-.276-.1-.476-.15-.677.15-.2.301-.777.978-.952 1.178-.175.2-.351.226-.652.075-.301-.15-1.27-.468-2.42-1.494-.894-.798-1.498-1.784-1.674-2.085-.175-.301-.019-.464.132-.614.136-.135.301-.351.451-.527.15-.175.2-.301.3-.501.101-.2.051-.376-.025-.527-.075-.15-.677-1.63-.928-2.232-.245-.587-.494-.508-.677-.517-.175-.01-.376-.01-.577-.01-.2 0-.527.075-.802.376s-1.053 1.028-1.053 2.508 1.078 2.909 1.229 3.11c.15.2 2.122 3.24 5.141 4.544.718.31 1.279.495 1.716.634.721.23 1.378.197 1.897.12.578-.087 1.781-.728 2.032-1.431.251-.703.251-1.305.176-1.431-.076-.126-.276-.201-.577-.352zM12.04 2C6.51 2 2.02 6.49 2.02 12.02c0 1.99.58 3.86 1.63 5.46L2 22l4.67-1.61c1.55.98 3.37 1.55 5.37 1.55 5.53 0 10.02-4.49 10.02-10.02C22.06 6.49 17.57 2 12.04 2z" />
+    </svg>
+  );
+}
 
 function TrustStars({ outOf5 }) {
   const filled = Math.round(outOf5);
@@ -177,6 +194,8 @@ export default function ProductDetailModal({ product, onClose }) {
       : null;
 
   const outOf5 = trustOutOf5(product?.seller_trust_score);
+  const academic = inferAcademicMeta(product);
+  const [copied, setCopied] = useState(false);
   const tags = Array.isArray(product.ai_tags) ? product.ai_tags : [];
   const notes =
     typeof product.ai_condition_notes === "string" && product.ai_condition_notes
@@ -213,7 +232,9 @@ export default function ProductDetailModal({ product, onClose }) {
             <div className="mt-1 flex flex-wrap items-center gap-2 text-[13px] text-muted">
               <span>{conditionLabel(product?.condition)}</span>
               <span className="text-faint">·</span>
-              <span className="text-faint">inspected listing</span>
+              <span className="inline-flex items-center rounded-full border border-line bg-sunken px-2.5 py-0.5 text-xs font-medium text-ink-soft">
+                {academic.badge}
+              </span>
               {product?.college_name && (
                 <>
                   <span className="text-faint">·</span>
@@ -365,7 +386,47 @@ export default function ProductDetailModal({ product, onClose }) {
               Ask CampusMart AI About This Item
             </Link>
           </div>
-          <p className="mt-2 text-center text-[11.5px] text-faint">
+
+          {/* Viral WhatsApp Share & Copy Link */}
+          <div className="mt-2.5 flex flex-col gap-2 sm:flex-row">
+            <a
+              href={buildWhatsAppShareUrl(product)}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn h-10 flex-1 gap-2 bg-[#25D366] text-white hover:bg-[#20ba59] border-transparent font-medium text-[13px] shadow-xs"
+            >
+              <WhatsAppIcon className="h-4 w-4 fill-white" />
+              Share to Hostel / Batch WhatsApp
+            </a>
+            <button
+              type="button"
+              onClick={async () => {
+                try {
+                  const shareUrl = `${window.location.origin}/marketplace?item=${encodeURIComponent(product.id || product.title || "")}`;
+                  await navigator.clipboard.writeText(shareUrl);
+                  setCopied(true);
+                  setTimeout(() => setCopied(false), 2000);
+                } catch {
+                  /* ignore */
+                }
+              }}
+              className="btn btn-secondary h-10 gap-1.5 px-4 text-[13px]"
+            >
+              {copied ? (
+                <>
+                  <Check className="h-4 w-4 text-positive" aria-hidden="true" />
+                  <span className="text-positive font-medium">Link Copied!</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="h-4 w-4 text-muted" aria-hidden="true" />
+                  <span>Copy Link</span>
+                </>
+              )}
+            </button>
+          </div>
+
+          <p className="mt-2.5 text-center text-[11.5px] text-faint">
             Verified campus exchange · Chat and instant payments live in the Android app.
           </p>
         </div>

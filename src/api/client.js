@@ -752,3 +752,224 @@ export async function askCampusMartAi({
 
   return generateCatalogAssistantReply(message, catalog);
 }
+
+/* ---------------- Wanted Board API Methods ---------------- */
+
+export function normalizeWantedRequest(raw) {
+  return {
+    id: raw?.id ?? `wanted-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+    title: raw?.title ?? "",
+    description: raw?.description ?? "",
+    budget: raw?.budget ?? raw?.max_budget ?? null,
+    branch: raw?.branch ?? "All Branches",
+    academic_year: raw?.academic_year ?? "All Years",
+    college_name: raw?.college_name ?? "Campus Community",
+    urgency: raw?.urgency ?? "Needed this week",
+    student_name: raw?.student_name ?? raw?.buyer_name ?? "Campus Student",
+    contact_info: raw?.contact_info ?? null,
+    created_at: raw?.created_at ?? new Date().toISOString(),
+  };
+}
+
+export async function fetchWantedRequests() {
+  if (!NETWORK_ENABLED) return null;
+  try {
+    const response = await fetchWithRetry(
+      `${API_BASE}/wanted/`,
+      {
+        method: "GET",
+        headers: { Accept: "application/json" },
+      },
+      { retries: 1, timeoutMs: 15000 }
+    );
+
+    if (!response.ok) return null;
+    const data = await response.json();
+    const list = Array.isArray(data)
+      ? data
+      : Array.isArray(data?.wanted)
+        ? data.wanted
+        : Array.isArray(data?.items)
+          ? data.items
+          : [];
+    return list.map(normalizeWantedRequest);
+  } catch {
+    return null;
+  }
+}
+
+export async function createWantedRequest(payload) {
+  const normalized = normalizeWantedRequest(payload);
+  if (NETWORK_ENABLED) {
+    try {
+      const response = await fetchWithRetry(
+        `${API_BASE}/wanted/`,
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(normalized),
+        },
+        { retries: 1, timeoutMs: 15000 }
+      );
+      if (response.ok) {
+        const data = await response.json();
+        return normalizeWantedRequest(data);
+      }
+    } catch {
+      /* Fallback to local optimistic persistence */
+    }
+  }
+  return normalized;
+}
+
+export async function aiDraftWantedRequest(prompt) {
+  if (!prompt || !prompt.trim()) {
+    return null;
+  }
+  const text = prompt.trim();
+
+  // Try backend if alive
+  if (NETWORK_ENABLED) {
+    try {
+      const response = await fetchWithRetry(
+        `${API_BASE}/wanted/ai-draft`,
+        {
+          method: "POST",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ prompt: text }),
+        },
+        { retries: 0, timeoutMs: 8000 }
+      );
+      if (response.ok) {
+        const data = await response.json();
+        if (data?.title) return data;
+      }
+    } catch {
+      /* Fall through to instant smart local NLP parser */
+    }
+  }
+
+  // Instant smart local NLP parser
+  const lower = text.toLowerCase();
+
+  // Extract budget: e.g. "under 700", "under ₹700", "₹700", "700 rs", "rs 700", "budget 800"
+  let budget = null;
+  const budgetMatch =
+    text.match(/(?:under|below|max|budget|within|upto|up to|rs\.?|inr|₹)\s*(\d{2,6})/i) ||
+    text.match(/(\d{2,6})\s*(?:rs|rupees|inr|bucks|\/-)/i);
+  if (budgetMatch) {
+    budget = parseInt(budgetMatch[1], 10);
+  }
+
+  // Extract urgency
+  let urgency = "⚡ Needed this week";
+  if (
+    lower.includes("urgent") ||
+    lower.includes("tomorrow") ||
+    lower.includes("today") ||
+    lower.includes("tonight")
+  ) {
+    urgency = "🔥 Urgent for tomorrow's exam";
+  } else if (
+    lower.includes("monday") ||
+    lower.includes("submission") ||
+    lower.includes("deadline")
+  ) {
+    urgency = "🔥 Urgent for Monday submission";
+  } else if (
+    lower.includes("midterm") ||
+    lower.includes("in-sem") ||
+    lower.includes("end-sem") ||
+    lower.includes("exam")
+  ) {
+    urgency = "📚 Before Exams";
+  }
+
+  // Extract branch & year
+  let branch = "First Year (Common)";
+  let academic_year = "FE (1st Year)";
+
+  if (
+    lower.includes("drafter") ||
+    lower.includes("drawing") ||
+    lower.includes("bee") ||
+    lower.includes("m1") ||
+    lower.includes("m2") ||
+    lower.includes("mechanics")
+  ) {
+    branch = "First Year (Common)";
+    academic_year = "FE (1st Year)";
+  } else if (
+    lower.includes("python") ||
+    lower.includes("java") ||
+    lower.includes("code") ||
+    lower.includes("laptop") ||
+    lower.includes("c++") ||
+    lower.includes("dsa") ||
+    lower.includes("dbms")
+  ) {
+    branch = "Computer / IT";
+    academic_year = "SE (2nd Year)";
+  } else if (
+    lower.includes("thermo") ||
+    lower.includes("workshop") ||
+    lower.includes("lathe") ||
+    lower.includes("cad") ||
+    lower.includes("mechanical")
+  ) {
+    branch = "Mechanical";
+    academic_year = "SE (2nd Year)";
+  } else if (
+    lower.includes("pharma") ||
+    lower.includes("chemistry") ||
+    lower.includes("lab coat") ||
+    lower.includes("aphe")
+  ) {
+    branch = "Pharmacy";
+    academic_year = "FE (1st Year)";
+  } else if (
+    lower.includes("arduino") ||
+    lower.includes("multimeter") ||
+    lower.includes("breadboard") ||
+    lower.includes("circuit") ||
+    lower.includes("entc") ||
+    lower.includes("sensor")
+  ) {
+    branch = "Electrical / ENTC";
+    academic_year = "SE (2nd Year)";
+  } else if (
+    lower.includes("civil") ||
+    lower.includes("survey") ||
+    lower.includes("concrete")
+  ) {
+    branch = "Civil";
+    academic_year = "SE (2nd Year)";
+  }
+
+  // Extract cleaned title
+  let title = text
+    .replace(/(?:need|want|looking for|require|urgently|urgent|buy|buying)\s+/i, "")
+    .replace(/(?:under|below|max|budget|within|upto|up to|rs\.?|inr|₹)\s*\d{2,6}\s*(?:rs|rupees|inr|bucks|\/-)?/gi, "")
+    .replace(/(?:urgent for|for exam|for tomorrow|tomorrow|today|exam|submission)/gi, "")
+    .trim();
+  if (title.length > 2) {
+    title = title.charAt(0).toUpperCase() + title.slice(1);
+  } else {
+    title = text;
+  }
+
+  return {
+    title: title || text,
+    budget: budget || 500,
+    branch,
+    academic_year,
+    urgency,
+    description: `Urgent requirement: ${text}. Please reach out if you have this available on campus!`,
+  };
+}

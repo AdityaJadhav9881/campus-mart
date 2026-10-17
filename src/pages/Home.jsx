@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { ArrowRight, Check, Smartphone, Store } from "lucide-react";
 import { Link } from "../router/router.jsx";
 import { useLiveFeed } from "../hooks/useLiveFeed.js";
@@ -6,6 +6,7 @@ import { useStats } from "../hooks/useStats.js";
 import { demoListings } from "../data/demoListings.js";
 import { conditionLabel, productPrice, rupees, trustOutOf5 } from "../lib/format.js";
 import ProductDetailModal from "../components/ProductDetailModal.jsx";
+import WantedBoard from "../components/WantedBoard.jsx";
 
 const MODE_LABEL = {
   loading: "Checking campus activity…",
@@ -83,6 +84,27 @@ export default function Home() {
 
   const preview =
     products.length > 0 ? products.slice(0, 3) : demoListings.slice(0, 3);
+
+  // Deep-link query listener: ?item=<id-or-slug>
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const itemParam = params.get("item");
+    const list = products.length > 0 ? products : demoListings;
+    if (itemParam && list.length > 0) {
+      const needle = decodeURIComponent(itemParam).trim().toLowerCase();
+      const matched = list.find((p) => {
+        if (p.id && String(p.id).toLowerCase() === needle) return true;
+        const slug = (p.title || "").toLowerCase().replace(/[^a-z0-9]+/g, "-");
+        if (slug === needle || slug.includes(needle) || needle.includes(slug)) return true;
+        if (p.title && p.title.toLowerCase() === needle) return true;
+        return false;
+      });
+      if (matched) {
+        setSelected(matched);
+      }
+    }
+  }, [products]);
 
   return (
     <div className="page-in w-full">
@@ -200,6 +222,37 @@ export default function Home() {
           </div>
         </aside>
       </div>
+
+      {/* Wanted on Campus Preview Strip */}
+      <section className="mx-auto max-w-6xl px-5 pt-6 pb-14 sm:px-8 sm:pb-20">
+        <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="flex h-2 w-2 rounded-full bg-accent" />
+              <p className="eyebrow">Instant Cash For Seniors</p>
+            </div>
+            <h2 className="mt-1.5 text-2xl font-medium sm:text-3xl">
+              Wanted on Campus
+            </h2>
+            <p className="mt-1 text-xs text-muted sm:text-sm">
+              Urgent items junior batchmates are looking for right now. Sell and get paid immediately.
+            </p>
+          </div>
+          <Link
+            to="/marketplace?tab=wanted"
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-accent transition-colors hover:text-accent-deep sm:text-sm"
+          >
+            <span>View all campus requests</span>
+            <ArrowRight className="h-4 w-4" aria-hidden="true" />
+          </Link>
+        </div>
+
+        <WantedBoard
+          products={products.length > 0 ? products : demoListings}
+          onSelectProduct={setSelected}
+          previewOnly={true}
+        />
+      </section>
 
       {selected && (
         <ProductDetailModal
