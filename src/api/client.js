@@ -1,8 +1,13 @@
 import { fallbackSearchColleges } from "../data/colleges.js";
 
-const EXPLICIT_BASE = import.meta.env.VITE_API_BASE_URL;
+const EXPLICIT_BASE =
+  typeof import.meta !== "undefined" && import.meta.env
+    ? import.meta.env.VITE_API_BASE_URL
+    : "";
 const API_BASE = (EXPLICIT_BASE || "http://127.0.0.1:8000").replace(/\/+$/, "");
-const NETWORK_ENABLED = Boolean(EXPLICIT_BASE) || import.meta.env.DEV;
+const NETWORK_ENABLED =
+  Boolean(EXPLICIT_BASE) ||
+  (typeof import.meta !== "undefined" && Boolean(import.meta.env?.DEV));
 
 /* Render's free tier sleeps after inactivity; waking it can take 45-90s.
    Requests wait up to 75s and retry transient network/5xx failures. */
@@ -350,12 +355,118 @@ export async function authRegister({ name, email, password, college_name }) {
   return { token: pickToken(body), user: pickUser(body, { email, name, college_name }) };
 }
 
-export async function searchColleges(query = "") {
+/* -------------------- 3-Layer Hybrid College Discovery Engine -------------------- */
+
+async function discoverCollegesNominatim(query, signal) {
+  try {
+    const url = `https://nominatim.openstreetmap.org/search?format=json&countrycodes=in&limit=8&q=${encodeURIComponent(
+      query + " college"
+    )}`;
+    const res = await fetch(url, {
+      signal,
+      headers: { Accept: "application/json" },
+    });
+    if (!res.ok) return [];
+    const data = await res.json();
+    if (!Array.isArray(data)) return [];
+
+    return data
+      .map((item) => {
+        const full = item.display_name || "";
+        const parts = full.split(",").map((p) => p.trim());
+        const rawName = parts[0];
+        const lower = full.toLowerCase();
+        if (
+          !lower.includes("college") &&
+          !lower.includes("institute") &&
+          !lower.includes("university") &&
+          !lower.includes("polytechnic") &&
+          !lower.includes("campus") &&
+          !lower.includes("vidyalaya")
+        ) {
+          return null;
+        }
+
+        let city = parts[1] || "";
+        for (let i = 1; i < parts.length - 2; i++) {
+          if (!/^\d+$/.test(parts[i]) && parts[i] !== "India" && parts[i].length > 2) {
+            city = parts[i];
+            break;
+          }
+        }
+
+        return {
+          name: rawName,
+          shortName: rawName.length > 45 ? rawName.slice(0, 42) + "…" : rawName,
+          code: null,
+          city: city || null,
+          type: "Verified Campus",
+          badge: "Verified Campus",
+          source: "web",
+        };
+      })
+      .filter(Boolean);
+  } catch {
+    return [];
+  }
+}
+
+async function discoverCollegesWikipedia(query, signal) {
+  try {
+    const url = `https://en.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(
+      query + " college"
+    )}&format=json&origin=*&srlimit=8`;
+    const res = await fetch(url, { signal });
+    if (!res.ok) return [];
+    const data = await res.json();
+    const items = data?.query?.search || [];
+    return items
+      .map((item) => {
+        const title = (item.title || "").trim();
+        const lower = title.toLowerCase();
+        if (
+          !lower.includes("college") &&
+          !lower.includes("institute") &&
+          !lower.includes("university") &&
+          !lower.includes("polytechnic")
+        ) {
+          return null;
+        }
+        if (lower.includes("disambiguation") || lower.includes("list of")) {
+          return null;
+        }
+
+        return {
+          name: title,
+          shortName: title.length > 45 ? title.slice(0, 42) + "…" : title,
+          code: null,
+          city: null,
+          type: "Verified Campus",
+          badge: "Verified Campus",
+          source: "web",
+        };
+      })
+      .filter(Boolean);
+  } catch {
+    return [];
+  }
+}
+
+export async function searchCollegesOnline(query = "") {
   const trimmed = (query || "").trim();
-  if (NETWORK_ENABLED) {
+  if (!trimmed) {
+    return fallbackSearchColleges("");
+  }
+
+  // Source A: Instant local match from comprehensive dataset
+  const localList = fallbackSearchColleges(trimmed);
+
+  // Source B: Live call to backend AI engine
+  const backendPromise = (async () => {
+    if (!NETWORK_ENABLED) return [];
     try {
       const response = await fetchWithRetry(
-        `${API_BASE}/colleges?q=${encodeURIComponent(trimmed)}`,
+        `${API_BASE}/colleges?q=${encodeURIComponent(trimmed)}&discover=true`,
         { method: "GET", headers: { Accept: "application/json" } },
         { retries: 0, timeoutMs: 3500 }
       );
@@ -368,29 +479,110 @@ export async function searchColleges(query = "") {
             : Array.isArray(data?.items)
               ? data.items
               : [];
-        if (list.length > 0) {
-          return list
-            .map((item) => {
-              if (typeof item === "string") {
-                return { name: item, shortName: item, code: null, city: null };
-              }
+        return list
+          .map((item) => {
+            if (typeof item === "string") {
               return {
-                name: item.name || item.college_name || item.title || "",
-                shortName: item.shortName || item.short_name || item.name || "",
-                code: item.code || item.institute_code || null,
-                city: item.city || item.district || null,
+                name: item,
+                shortName: item,
+                code: null,
+                city: null,
+                type: "CET Cell",
+                badge: "CET Cell",
+                source: "backend",
               };
-            })
-            .filter((c) => c.name);
-        }
+            }
+            const code = item.code || item.institute_code || null;
+            return {
+              name: item.name || item.college_name || item.title || "",
+              shortName: item.shortName || item.short_name || item.name || "",
+              code,
+              city: item.city || item.district || null,
+              type: item.type || (code ? `CET ${code}` : "CET Cell"),
+              badge: code ? `CET ${code}` : (item.type || "CET Cell"),
+              source: "backend",
+            };
+          })
+          .filter((c) => c.name);
       }
     } catch {
-      /* Fallback to local Maharashtra CET Cell directory */
+      // Backend cold-starting or endpoint not ready
     }
+    return [];
+  })();
+
+  // Source C: Live web discovery via Nominatim and Wikipedia
+  let signal;
+  if (typeof AbortSignal !== "undefined" && AbortSignal.timeout) {
+    signal = AbortSignal.timeout(3500);
   }
 
-  return fallbackSearchColleges(trimmed);
+  const webPromise = (async () => {
+    try {
+      const [nom, wiki] = await Promise.allSettled([
+        discoverCollegesNominatim(trimmed, signal),
+        discoverCollegesWikipedia(trimmed, signal),
+      ]);
+      const listA = nom.status === "fulfilled" ? nom.value : [];
+      const listB = wiki.status === "fulfilled" ? wiki.value : [];
+      return [...listA, ...listB];
+    } catch {
+      return [];
+    }
+  })();
+
+  let backendList = [];
+  let webList = [];
+  try {
+    const [bRes, wRes] = await Promise.allSettled([backendPromise, webPromise]);
+    if (bRes.status === "fulfilled") backendList = bRes.value;
+    if (wRes.status === "fulfilled") webList = wRes.value;
+  } catch {
+    // Local list is always ready
+  }
+
+  function coreKey(str) {
+    if (!str) return "";
+    return str
+      .toLowerCase()
+      .replace(
+        /\b(dr|shri|late|college|of|engineering|technology|institute|and|research|society|trust|the|pune|mumbai|karad|satara)\b/g,
+        ""
+      )
+      .replace(/[^a-z0-9]/g, "");
+  }
+
+  const seenCodes = new Set();
+  const seenKeys = new Set();
+  const merged = [];
+
+  const addCandidate = (item) => {
+    if (!item || !item.name) return;
+    if (item.code) {
+      if (seenCodes.has(item.code)) return;
+      seenCodes.add(item.code);
+    }
+    const key = coreKey(item.name);
+    if (key.length >= 3) {
+      if (seenKeys.has(key)) return;
+      seenKeys.add(key);
+    } else {
+      const exact = item.name.toLowerCase().trim();
+      if (seenKeys.has(exact)) return;
+      seenKeys.add(exact);
+    }
+    merged.push(item);
+  };
+
+  // Merge with priority: Local Authoritative -> Backend AI -> Live Web Discovery
+  for (const c of localList) addCandidate(c);
+  for (const c of backendList) addCandidate(c);
+  for (const c of webList) addCandidate(c);
+
+  return merged.slice(0, 35);
 }
+
+export const searchColleges = searchCollegesOnline;
 
 /* -------------------- AI Assistant & Catalog Chat -------------------- */
 

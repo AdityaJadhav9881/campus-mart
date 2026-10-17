@@ -236,7 +236,7 @@ All requests are dispatched through `src/api/client.js` with exponential backoff
 |---|---|---|---|
 | `/` | `GET` | None | Health check probe. Returns `200 OK` when backend is awake. |
 | `/products/` | `GET` | None | Returns array of products. Normalized into `{ id, title, description, category, condition, image_url, image_urls, ai_tags, ai_condition_notes, seller_name, college_name, listed_price, suggested_price, seller_trust_score, created_at }`. |
-| `/colleges` | `GET` | `?q=<query>` | Maharashtra State CET Cell College directory search. Returns matching institutions (`code`, `name`, `shortName`, `city`). Falls back to instantaneous built-in local directory in `src/data/colleges.js`. |
+| `/colleges` | `GET` | `?q=<query>&discover=true` | **3-Layer Hybrid College Search Engine:** Queries local 6-region directory (180+ institutes) + live backend AI + web discovery (Nominatim & Wikipedia). Returns `{ code, name, shortName, city, district, type, badge, source }`. |
 | `/stats/` | `GET` | None | Returns campus metrics (`listings`, `students`). Falls back to null. |
 | `/auth/send-otp` | `POST` | `{ name, email, password, college_name? }` | Sends 6-digit OTP. Returns `{ message, email, email_delivered, fallback_otp_code }`. |
 | `/auth/verify-otp` | `POST` | `{ email, otp_code, college_name? }` | Verifies OTP. Returns `{ access_token, token_type, user: { id, name, email, trust_score, college_name } }`. |
@@ -278,4 +278,4 @@ All requests are dispatched through `src/api/client.js` with exponential backoff
 
 ---
 
-*Last updated: 2026-10-17. Added Maharashtra State CET Cell College directory integration, searchable institute selector on sign-up, college badge rendering on product cards and detail modal, and campus filtering on /marketplace.*
+*Last updated: 2026-10-17. Integrated 3-Layer Hybrid College Search Engine (comprehensive 6-region Maharashtra directory + backend AI + live web discovery via Nominatim/Wikipedia) with 220ms debounce and instant 0ms local response.*

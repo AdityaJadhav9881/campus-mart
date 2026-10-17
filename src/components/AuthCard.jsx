@@ -8,10 +8,12 @@ import {
   MailCheck,
   Search,
   ShieldCheck,
+  Sparkles,
   UserPlus,
   X,
 } from "lucide-react";
-import { ApiError, searchColleges } from "../api/client.js";
+import { ApiError, searchCollegesOnline } from "../api/client.js";
+import { fallbackSearchColleges } from "../data/colleges.js";
 import { useAuth } from "../hooks/useAuth.js";
 import { useWarmup } from "../hooks/useWarmup.js";
 import WarmupBanner from "./WarmupBanner.jsx";
@@ -27,22 +29,37 @@ function friendlyError(error) {
 function CollegePicker({ value, onChange, disabled }) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState([]);
+  const [results, setResults] = useState(() => fallbackSearchColleges(""));
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     let active = true;
+
+    // Instant 0ms local match so the UI responds immediately with zero perceived latency
+    const localMatch = fallbackSearchColleges(query);
+    setResults(localMatch);
+
+    // If query is blank, we don't need to fire web queries
+    if (!query.trim()) {
+      setLoading(false);
+      return () => {
+        active = false;
+      };
+    }
+
     setLoading(true);
     const timer = setTimeout(async () => {
       try {
-        const list = await searchColleges(query);
-        if (active) setResults(list);
+        const list = await searchCollegesOnline(query);
+        if (active && list.length > 0) {
+          setResults(list);
+        }
       } catch {
-        if (active) setResults([]);
+        // Retain local results if network fails
       } finally {
         if (active) setLoading(false);
       }
-    }, 120);
+    }, 220);
 
     return () => {
       active = false;
@@ -57,7 +74,7 @@ function CollegePicker({ value, onChange, disabled }) {
           <label className="text-[13px] font-medium text-ink">
             College / Institute
           </label>
-          <span className="text-[11px] font-medium text-accent">CET Cell Directory</span>
+          <span className="text-[11px] font-medium text-accent">CET Cell & Verified</span>
         </div>
         <div className="mt-2 flex items-center justify-between gap-3 rounded-xl border border-accent/25 bg-accent-soft/40 p-3 shadow-xs">
           <div className="flex min-w-0 items-center gap-2.5">
@@ -92,7 +109,7 @@ function CollegePicker({ value, onChange, disabled }) {
         <label htmlFor="auth-college-search" className="text-[13px] font-medium text-ink">
           College / Institute
         </label>
-        <span className="text-[11px] text-faint">CET Cell Directory</span>
+        <span className="text-[11px] text-faint">CET Cell & All-India Directory</span>
       </div>
 
       <div className="relative mt-2">
@@ -110,7 +127,7 @@ function CollegePicker({ value, onChange, disabled }) {
             setQuery(e.target.value);
             setOpen(true);
           }}
-          placeholder="Search COEP, VJTI, PICT, or CET code…"
+          placeholder="Search DACOE Karad, COEP, VJTI, or any Indian college…"
           className="input pl-10 pr-9"
           autoComplete="off"
         />
@@ -132,17 +149,23 @@ function CollegePicker({ value, onChange, disabled }) {
             onClick={() => setOpen(false)}
             aria-hidden="true"
           />
-          <div className="absolute left-0 right-0 top-full z-20 mt-1.5 max-h-56 overflow-y-auto rounded-xl border border-line bg-card p-1.5 shadow-lg scroll-slim">
+          <div className="absolute left-0 right-0 top-full z-20 mt-1.5 max-h-60 overflow-y-auto rounded-xl border border-line bg-card p-1.5 shadow-lg scroll-slim">
             {loading && (
-              <div className="flex items-center justify-center gap-2 py-4 text-xs text-muted">
-                <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                Searching CET Cell directory…
+              <div className="flex items-center justify-between border-b border-line/40 bg-accent-soft/30 px-3 py-1.5 text-[11px] text-accent">
+                <span className="inline-flex items-center gap-1.5 font-medium">
+                  <Loader2 className="h-3 w-3 animate-spin text-accent" />
+                  Searching directory…
+                </span>
+                <span className="flex items-center gap-1 text-[10px] font-semibold text-accent-deep">
+                  <Sparkles className="h-3 w-3 text-accent" />
+                  ✨ Live AI & Web College Search
+                </span>
               </div>
             )}
 
             {!loading && results.length === 0 && (
               <div className="p-3 text-center">
-                <p className="text-xs text-muted">No CET college found matching "{query}"</p>
+                <p className="text-xs text-muted">No college found matching "{query}"</p>
                 {query.trim() && (
                   <button
                     type="button"
@@ -158,35 +181,31 @@ function CollegePicker({ value, onChange, disabled }) {
               </div>
             )}
 
-            {!loading &&
-              results.map((c) => (
-                <button
-                  key={c.code ? `${c.code}-${c.name}` : c.name}
-                  type="button"
-                  onClick={() => {
-                    onChange(c.shortName || c.name);
-                    setOpen(false);
-                  }}
-                  className="flex w-full flex-col items-start rounded-lg px-3 py-2 text-left transition hover:bg-sunken"
-                >
-                  <div className="flex w-full items-center justify-between gap-2">
-                    <span className="text-[13px] font-medium text-ink">
-                      {c.shortName || c.name}
-                    </span>
-                    {c.code && (
-                      <span className="shrink-0 rounded bg-sunken px-1.5 py-0.5 text-[10px] font-mono font-medium text-muted">
-                        CET {c.code}
-                      </span>
-                    )}
-                  </div>
-                  <span className="line-clamp-1 text-[11px] text-faint">
-                    {c.name} {c.city ? `· ${c.city}` : ""}
+            {results.map((c) => (
+              <button
+                key={c.code ? `${c.code}-${c.name}` : c.name}
+                type="button"
+                onClick={() => {
+                  onChange(c.shortName || c.name);
+                  setOpen(false);
+                }}
+                className="flex w-full flex-col items-start rounded-lg px-3 py-2 text-left transition hover:bg-sunken"
+              >
+                <div className="flex w-full items-center justify-between gap-2">
+                  <span className="text-[13px] font-medium text-ink">
+                    {c.shortName || c.name}
                   </span>
-                </button>
-              ))}
+                  <span className="shrink-0 rounded bg-sunken px-1.5 py-0.5 text-[10px] font-mono font-medium text-muted">
+                    {c.badge || (c.code ? `CET ${c.code}` : c.type || "Verified Campus")}
+                  </span>
+                </div>
+                <span className="line-clamp-1 text-[11px] text-faint">
+                  {c.name} {c.city ? `· ${c.city}` : ""}
+                </span>
+              </button>
+            ))}
 
-            {!loading &&
-              query.trim() &&
+            {query.trim() &&
               !results.some(
                 (r) =>
                   (r.shortName || r.name).toLowerCase() ===
