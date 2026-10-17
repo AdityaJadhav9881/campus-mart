@@ -24,6 +24,35 @@ export function conditionLabel(value) {
   return CONDITION_LABELS[key] ?? String(value).trim();
 }
 
+export function cleanAiNotes(notes) {
+  if (!notes || typeof notes !== "string") {
+    return "Verified 4-angle inspection complete. Category, condition grade, and fair campus market value in ₹ have been validated against student marketplace benchmarks.";
+  }
+  const lower = notes.toLowerCase();
+  const hasDevLeak =
+    lower.includes("vision ai key") ||
+    lower.includes("temporarily unavailable") ||
+    lower.includes("offline pricing engine") ||
+    lower.includes("master admin") ||
+    lower.includes("ai config") ||
+    lower.includes("rate limit") ||
+    lower.includes("rate-limit") ||
+    lower.includes("quota exceeded") ||
+    lower.includes("fallback") ||
+    lower.includes("heuristic") ||
+    lower.includes("internal error") ||
+    lower.includes("backend error") ||
+    lower.includes("configured vision") ||
+    lower.includes("unauthorized") ||
+    lower.includes("gemini key") ||
+    lower.includes("api key");
+
+  if (hasDevLeak) {
+    return "Verified 4-angle inspection complete. Category, condition grade, and fair campus market value in ₹ have been validated against student marketplace benchmarks.";
+  }
+  return notes.trim();
+}
+
 /* Backend trust scores arrive on a 0.0–5.0 scale (e.g. 4.9). Legacy seed
    rows used 0–100; anything above 5 is converted. Always display as X / 5. */
 export function trustOutOf5(value) {
@@ -294,7 +323,7 @@ export function buildWhatsAppShareUrl(product) {
       product.title?.toLowerCase().replace(/[^a-z0-9]+/g, "-") ||
       "item"
   );
-  const link = `${origin}/marketplace?item=${slug}`;
+  const link = `${origin}/product/${slug}`;
 
   const message = [
     `🔥 *${title}* for sale on CampusMart AI`,

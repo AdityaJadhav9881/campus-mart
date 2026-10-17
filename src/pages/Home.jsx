@@ -1,11 +1,10 @@
 import { useEffect, useState } from "react";
 import { ArrowRight, Check, Smartphone, Store } from "lucide-react";
-import { Link } from "../router/router.jsx";
+import { Link, useNavigate } from "../router/router.jsx";
 import { useLiveFeed } from "../hooks/useLiveFeed.js";
 import { useStats } from "../hooks/useStats.js";
 import { demoListings } from "../data/demoListings.js";
 import { conditionLabel, productPrice, rupees, trustOutOf5 } from "../lib/format.js";
-import ProductDetailModal from "../components/ProductDetailModal.jsx";
 import WantedBoard from "../components/WantedBoard.jsx";
 import HeroGraphic from "../components/HeroGraphic.jsx";
 import TrustBadges from "../components/TrustBadges.jsx";
@@ -35,22 +34,30 @@ function Counter({ term, value }) {
   );
 }
 
-function PreviewRow({ product, onOpen }) {
+function PreviewRow({ product }) {
+  const navigate = useNavigate();
   const [imgError, setImgError] = useState(false);
   const price = productPrice(product);
   const outOf5 = trustOutOf5(product.seller_trust_score);
   const hasValidImage = Boolean(product.image_url) && !imgError;
+  const targetId =
+    product?.id ||
+    (product?.title || "item").toLowerCase().replace(/[^a-z0-9]+/g, "-");
+
+  const handleClick = () => {
+    navigate(`/product/${encodeURIComponent(targetId)}`);
+  };
 
   return (
     <li
       role="button"
       tabIndex={0}
       aria-label={`View details for ${product.title}`}
-      onClick={() => onOpen(product)}
+      onClick={handleClick}
       onKeyDown={(e) => {
         if (e.key === "Enter" || e.key === " ") {
           e.preventDefault();
-          onOpen(product);
+          handleClick();
         }
       }}
       className="group flex cursor-pointer items-center gap-3 rounded-xl px-2.5 py-2.5 transition hover:bg-sunken/80 focus:bg-sunken"
@@ -88,14 +95,14 @@ function PreviewRow({ product, onOpen }) {
 }
 
 export default function Home() {
+  const navigate = useNavigate();
   const { products, online, loading, refresh } = useLiveFeed();
   const { listings, students, mode } = useStats({ products, online, loading });
-  const [selected, setSelected] = useState(null);
 
   const preview =
     products.length > 0 ? products.slice(0, 4) : demoListings.slice(0, 4);
 
-  // Deep-link query listener: ?item=<id-or-slug>
+  // Deep-link query listener: ?item=<id-or-slug> -> redirect to /product/:id
   useEffect(() => {
     if (typeof window === "undefined") return;
     const params = new URLSearchParams(window.location.search);
@@ -110,11 +117,10 @@ export default function Home() {
         if (p.title && p.title.toLowerCase() === needle) return true;
         return false;
       });
-      if (matched) {
-        setSelected(matched);
-      }
+      const targetId = matched ? (matched.id || matched.title) : itemParam;
+      navigate(`/product/${encodeURIComponent(targetId)}`, { replace: true });
     }
-  }, [products]);
+  }, [products, navigate]);
 
   return (
     <div className="page-in w-full">
@@ -251,7 +257,6 @@ export default function Home() {
                 <PreviewRow
                   key={product.id}
                   product={product}
-                  onOpen={setSelected}
                 />
               ))}
             </ul>
@@ -291,17 +296,9 @@ export default function Home() {
 
         <WantedBoard
           products={products.length > 0 ? products : demoListings}
-          onSelectProduct={setSelected}
           previewOnly={true}
         />
       </section>
-
-      {selected && (
-        <ProductDetailModal
-          product={selected}
-          onClose={() => setSelected(null)}
-        />
-      )}
     </div>
   );
 }

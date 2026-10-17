@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { GraduationCap, ImageOff, Star } from "lucide-react";
+import { useNavigate } from "../router/router.jsx";
 import {
   buildWhatsAppShareUrl,
   conditionLabel,
@@ -24,6 +25,7 @@ function WhatsAppIcon({ className = "h-3.5 w-3.5" }) {
 }
 
 export default function ProductCard({ product, onOpen }) {
+  const navigate = useNavigate();
   const [imageError, setImageError] = useState(false);
   const price = productPrice(product);
   const outOf5 = trustOutOf5(product?.seller_trust_score);
@@ -54,17 +56,25 @@ export default function ProductCard({ product, onOpen }) {
   const posted = relativeTime(product?.created_at);
 
   const hasValidImage = Boolean(product?.image_url) && !imageError;
+  const targetId =
+    product?.id ||
+    (product?.title || "item").toLowerCase().replace(/[^a-z0-9]+/g, "-");
+
+  const handleCardClick = () => {
+    if (onOpen) onOpen();
+    navigate(`/product/${encodeURIComponent(targetId)}`);
+  };
 
   return (
     <article
       role="button"
       tabIndex={0}
       aria-label={`Inspect ${product?.title || "listing"}`}
-      onClick={onOpen}
+      onClick={handleCardClick}
       onKeyDown={(event) => {
         if (event.key === "Enter" || event.key === " ") {
           event.preventDefault();
-          onOpen?.();
+          handleCardClick();
         }
       }}
       className="group flex h-full cursor-pointer flex-col overflow-hidden rounded-2xl border border-line bg-card transition duration-200 hover:border-line-strong hover:shadow-[0_1px_2px_rgba(28,25,23,0.05),0_12px_28px_-18px_rgba(28,25,23,0.35)]"

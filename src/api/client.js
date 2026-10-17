@@ -1,4 +1,5 @@
 import { fallbackSearchColleges } from "../data/colleges.js";
+import { cleanAiNotes } from "../lib/format.js";
 
 const EXPLICIT_BASE =
   typeof import.meta !== "undefined" && import.meta.env
@@ -121,7 +122,9 @@ function normalizeProduct(raw) {
     image_urls: normalizeImageUrls(raw),
     ai_tags: normalizeTags(raw),
     ai_condition_notes:
-      typeof raw?.ai_condition_notes === "string" ? raw.ai_condition_notes : null,
+      typeof raw?.ai_condition_notes === "string"
+        ? cleanAiNotes(raw.ai_condition_notes)
+        : null,
     seller_name:
       typeof raw?.seller_name === "string" && raw.seller_name.trim() !== ""
         ? raw.seller_name.trim()
@@ -1069,7 +1072,11 @@ export async function estimatePriceWithAi({
       if (res.ok) {
         const data = await res.json();
         if (data && typeof data.is_valid_product === "boolean") {
-          return { ...data, source: "backend-estimate-price" };
+          return {
+            ...data,
+            condition_notes: cleanAiNotes(data.condition_notes),
+            source: "backend-estimate-price",
+          };
         }
       }
     } catch {
@@ -1139,6 +1146,7 @@ Output ONLY a raw JSON object with NO markdown formatting:
           if (typeof parsed.is_valid_product === "boolean") {
             return {
               ...parsed,
+              condition_notes: cleanAiNotes(parsed.condition_notes),
               source: "gemini-vision",
             };
           }

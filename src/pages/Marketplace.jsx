@@ -8,12 +8,11 @@ import {
   Sparkles,
   X,
 } from "lucide-react";
-import { useLocation } from "../router/router.jsx";
+import { useLocation, useNavigate } from "../router/router.jsx";
 import { useLiveFeed } from "../hooks/useLiveFeed.js";
 import { useWarmup } from "../hooks/useWarmup.js";
 import { demoListings } from "../data/demoListings.js";
 import ProductCard from "../components/ProductCard.jsx";
-import ProductDetailModal from "../components/ProductDetailModal.jsx";
 import WantedBoard from "../components/WantedBoard.jsx";
 import ApiStatusBadge from "../components/ApiStatusBadge.jsx";
 import WarmupBanner from "../components/WarmupBanner.jsx";
@@ -38,6 +37,7 @@ function SkeletonCard() {
 
 export default function Marketplace() {
   const { search } = useLocation();
+  const navigate = useNavigate();
   const { products, online, loading, refresh } = useLiveFeed();
   const [activeTab, setActiveTab] = useState("listings"); // "listings" | "wanted"
   const [query, setQuery] = useState("");
@@ -46,7 +46,6 @@ export default function Marketplace() {
   const [branch, setBranch] = useState("All Branches");
   const [year, setYear] = useState("All Years");
   const [sortBy, setSortBy] = useState("featured");
-  const [selected, setSelected] = useState(null);
   const warmup = useWarmup(loading);
 
   const usingDemo = !loading && !online && products.length === 0;
@@ -121,7 +120,7 @@ export default function Marketplace() {
       setQuery(decodeURIComponent(searchParam).trim());
     }
 
-    // 6. Deep link auto-modal open: ?item=<id-or-slug>
+    // 6. Deep link auto-redirect: ?item=<id-or-slug> -> /product/:id
     const itemParam = params.get("item");
     if (itemParam && source.length > 0) {
       const needle = decodeURIComponent(itemParam).trim().toLowerCase();
@@ -132,11 +131,11 @@ export default function Marketplace() {
         if (p.title && p.title.toLowerCase() === needle) return true;
         return false;
       });
-      if (matched) {
-        setSelected(matched);
-      }
+      const targetId = matched ? (matched.id || matched.title) : itemParam;
+      navigate(`/product/${encodeURIComponent(targetId)}`, { replace: true });
+      return;
     }
-  }, [search, source]);
+  }, [search, source, navigate]);
 
   const categories = useMemo(() => {
     const set = new Set();
@@ -480,7 +479,6 @@ export default function Marketplace() {
                 <ProductCard
                   key={product.id ?? product.title}
                   product={product}
-                  onOpen={() => setSelected(product)}
                 />
               ))}
             </div>
@@ -513,13 +511,6 @@ export default function Marketplace() {
           </>
         )}
       </div>
-
-      {selected && (
-        <ProductDetailModal
-          product={selected}
-          onClose={() => setSelected(null)}
-        />
-      )}
     </div>
   );
 }

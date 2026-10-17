@@ -126,9 +126,59 @@ export function NavLink({
   );
 }
 
-/* Matches an ordered route list; falls back to `notFound`. */
+const ParamsContext = createContext({});
+
+export function useParams() {
+  return useContext(ParamsContext) || {};
+}
+
+export function matchPath(pattern, pathname) {
+  if (!pattern || !pathname) return null;
+  const patternSegments = normalizePath(pattern).split("/").filter(Boolean);
+  const pathSegments = normalizePath(pathname).split("/").filter(Boolean);
+
+  if (patternSegments.length !== pathSegments.length) {
+    return null;
+  }
+
+  const params = {};
+  for (let i = 0; i < patternSegments.length; i++) {
+    const patternSeg = patternSegments[i];
+    const pathSeg = pathSegments[i];
+    if (patternSeg.startsWith(":")) {
+      const paramName = patternSeg.slice(1);
+      params[paramName] = decodeURIComponent(pathSeg);
+    } else if (patternSeg !== pathSeg) {
+      return null;
+    }
+  }
+
+  return { params };
+}
+
+/* Matches an ordered route list supporting exact paths and :params; falls back to `notFound`. */
 export function Routes({ routes, notFound = null }) {
   const { path } = useRouter();
-  const match = routes.find((route) => route.path === path);
-  return <>{match ? match.element : notFound}</>;
+
+  let matchedElement = null;
+  let matchedParams = {};
+
+  for (const route of routes) {
+    if (route.path === path) {
+      matchedElement = route.element;
+      break;
+    }
+    const match = matchPath(route.path, path);
+    if (match) {
+      matchedElement = route.element;
+      matchedParams = match.params;
+      break;
+    }
+  }
+
+  return (
+    <ParamsContext.Provider value={matchedParams}>
+      {matchedElement || notFound}
+    </ParamsContext.Provider>
+  );
 }

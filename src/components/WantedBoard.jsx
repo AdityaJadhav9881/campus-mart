@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import {
   AlertCircle,
   ArrowRight,
@@ -25,6 +26,7 @@ import { SEED_WANTED_REQUESTS } from "../data/wantedSeed.js";
 import { ACADEMIC_YEARS, BRANCHES } from "../data/site.js";
 import {
   buildWantedWhatsAppShareUrl,
+  productPrice,
   relativeTime,
   rupees,
 } from "../lib/format.js";
@@ -143,6 +145,13 @@ export default function WantedBoard({
       document.removeEventListener("keydown", onKeyDown);
     };
   }, [handoffItem]);
+
+  // Global unmount cleanup to ensure body scroll is never left locked
+  useEffect(() => {
+    return () => {
+      document.body.style.overflow = "";
+    };
+  }, []);
 
   // Sync with live backend
   useEffect(() => {
@@ -310,21 +319,25 @@ export default function WantedBoard({
                 </div>
 
                 {/* AI Instant Match Callout */}
-                {matchedProduct && (
-                  <button
-                    type="button"
-                    onClick={() => onSelectProduct?.(matchedProduct)}
-                    className="mt-3.5 flex w-full items-center justify-between gap-2 rounded-xl border border-positive/30 bg-positive-soft px-3 py-2 text-left transition hover:border-positive/50"
-                  >
-                    <span className="flex items-center gap-1.5 text-[11.5px] font-medium text-positive">
-                      <Sparkles className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
-                      <span>✨ 1 Matching Listing Found — View Deal</span>
-                    </span>
-                    <span className="text-[11px] font-semibold tabular-nums text-positive">
-                      {rupees(matchedProduct.listed_price ?? matchedProduct.suggested_price)}
-                    </span>
-                  </button>
-                )}
+                {matchedProduct && (() => {
+                  const matchId =
+                    matchedProduct.id ||
+                    (matchedProduct.title || "item").toLowerCase().replace(/[^a-z0-9]+/g, "-");
+                  return (
+                    <Link
+                      to={`/product/${encodeURIComponent(matchId)}`}
+                      className="mt-3.5 flex w-full items-center justify-between gap-2 rounded-xl border border-positive/30 bg-positive-soft px-3 py-2 text-left transition hover:border-positive/50 hover:bg-positive-soft/80"
+                    >
+                      <span className="flex items-center gap-1.5 text-[11.5px] font-medium text-positive">
+                        <Sparkles className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+                        <span>✨ 1 Matching Listing Found — View Deal</span>
+                      </span>
+                      <span className="text-[11px] font-semibold tabular-nums text-positive">
+                        {rupees(matchedProduct.listed_price ?? matchedProduct.suggested_price)}
+                      </span>
+                    </Link>
+                  );
+                })()}
               </div>
 
               {/* Bottom Row: Budget & Actions */}
@@ -385,76 +398,125 @@ export default function WantedBoard({
       )}
 
       {/* Seller Handoff Modal */}
-      {handoffItem && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div
-            className="absolute inset-0 bg-ink/40 backdrop-blur-xs"
-            onClick={() => setHandoffItem(null)}
-          />
-          <div className="relative z-10 w-full max-w-md rounded-2xl border border-line bg-card p-6 shadow-xl animate-in fade-in zoom-in-95 duration-150">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <span className="inline-flex items-center gap-1 rounded-full border border-positive/30 bg-positive-soft px-2.5 py-0.5 text-[11px] font-semibold text-positive">
-                  Quick Cash Opportunity
-                </span>
-                <h3 className="mt-2 text-lg font-medium leading-snug">
-                  Sell your {handoffItem.title}
-                </h3>
+      {handoffItem &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto">
+            <div
+              className="fixed inset-0"
+              onClick={() => setHandoffItem(null)}
+            />
+            <div className="relative z-10 w-full max-w-md rounded-2xl border border-line bg-card p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-150 my-auto">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <span className="inline-flex items-center gap-1 rounded-full border border-positive/30 bg-positive-soft px-2.5 py-0.5 text-[11px] font-semibold text-positive">
+                    Quick Cash Opportunity
+                  </span>
+                  <h3 className="mt-2 text-lg font-medium leading-snug">
+                    Sell your {handoffItem.title}
+                  </h3>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setHandoffItem(null)}
+                  className="flex h-8 w-8 items-center justify-center rounded-full border border-line text-muted hover:bg-sunken"
+                  aria-label="Close"
+                >
+                  <X className="h-4 w-4" />
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={() => setHandoffItem(null)}
-                className="flex h-8 w-8 items-center justify-center rounded-full border border-line text-muted hover:bg-sunken"
-              >
-                <X className="h-4 w-4" />
-              </button>
+
+              <p className="mt-3 text-xs leading-relaxed text-muted">
+                {handoffItem.student_name || "A verified student"} is offering up to{" "}
+                <strong className="text-ink font-semibold">{rupees(handoffItem.budget)}</strong> for this item at{" "}
+                <strong>{handoffItem.college_name || "your campus"}</strong>.
+              </p>
+
+              {/* Matching Listing Check */}
+              {(() => {
+                const matched = findMatchingListing(handoffItem, products);
+                if (!matched) return null;
+                const matchId =
+                  matched.id ||
+                  (matched.title || "item").toLowerCase().replace(/[^a-z0-9]+/g, "-");
+                return (
+                  <div className="mt-4 rounded-xl border border-accent/30 bg-accent-soft/40 p-3.5">
+                    <div className="flex items-center justify-between text-xs">
+                      <span className="font-semibold text-accent-deep flex items-center gap-1.5">
+                        <Sparkles className="h-3.5 w-3.5 text-accent" />
+                        Matching Listing Found on Campus
+                      </span>
+                      <span className="font-bold text-ink">
+                        {rupees(productPrice(matched))}
+                      </span>
+                    </div>
+                    <p className="mt-1 truncate text-xs text-ink font-medium">
+                      {matched.title}
+                    </p>
+                    <Link
+                      to={`/product/${encodeURIComponent(matchId)}`}
+                      onClick={() => setHandoffItem(null)}
+                      className="btn btn-secondary mt-2.5 h-8 w-full gap-1.5 text-xs font-medium border-accent/40 hover:bg-accent-soft"
+                    >
+                      <span>View Matching Listing →</span>
+                    </Link>
+                  </div>
+                );
+              })()}
+
+              <div className="mt-5 space-y-2.5">
+                <a
+                  href={buildWantedWhatsAppShareUrl(handoffItem)}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn h-11 w-full gap-2 text-xs font-semibold sm:text-sm bg-[#25D366] hover:bg-[#20bd5a] text-white border-transparent shadow-sm"
+                >
+                  <WhatsAppIcon className="h-4 w-4 shrink-0" />
+                  Respond via WhatsApp to Buyer
+                </a>
+
+                <Link
+                  to="/download"
+                  onClick={() => setHandoffItem(null)}
+                  className="btn btn-primary h-11 w-full gap-2 text-xs font-medium sm:text-sm"
+                >
+                  <Smartphone className="h-4 w-4 shrink-0" />
+                  List Your Item on CampusMart App
+                </Link>
+
+                <a
+                  href={`mailto:martaicampus@gmail.com?subject=${encodeURIComponent(
+                    `CampusMart Match: I have ${handoffItem.title} for ${handoffItem.student_name || "Buyer"}`
+                  )}&body=${encodeURIComponent(
+                    `Hi CampusMart Team,\n\nI have the requested item (${handoffItem.title}) for max budget ${rupees(
+                      handoffItem.budget
+                    )}.\nPlease connect me with the student buyer on ${handoffItem.college_name || "campus"}.\n\nMy Contact Details:\nName:\nHostel/Room:\nPhone/WhatsApp:`
+                  )}`}
+                  className="btn btn-secondary h-11 w-full gap-2 text-xs font-medium sm:text-sm"
+                >
+                  <Mail className="h-4 w-4 shrink-0 text-accent" />
+                  Connect via Campus Support Email
+                </a>
+              </div>
+
+              <p className="mt-4 text-center text-[11px] text-faint">
+                Instant handoffs occur in common campus zones (hostel, library, canteen).
+              </p>
             </div>
-
-            <p className="mt-3 text-xs leading-relaxed text-muted">
-              {handoffItem.student_name || "A verified student"} is offering up to{" "}
-              <strong className="text-ink font-semibold">{rupees(handoffItem.budget)}</strong> for this item at{" "}
-              <strong>{handoffItem.college_name || "your campus"}</strong>.
-            </p>
-
-            <div className="mt-5 space-y-2.5">
-              <Link
-                to="/download"
-                onClick={() => setHandoffItem(null)}
-                className="btn btn-primary h-11 w-full gap-2 text-xs font-medium sm:text-sm"
-              >
-                <Smartphone className="h-4 w-4 shrink-0" />
-                Chat with Buyer in CampusMart App
-              </Link>
-
-              <a
-                href={`mailto:martaicampus@gmail.com?subject=${encodeURIComponent(
-                  `CampusMart Match: I have ${handoffItem.title} for ${handoffItem.student_name || "Buyer"}`
-                )}&body=${encodeURIComponent(
-                  `Hi CampusMart Team,\n\nI have the requested item (${handoffItem.title}) for max budget ${rupees(
-                    handoffItem.budget
-                  )}.\nPlease connect me with the student buyer on ${handoffItem.college_name || "campus"}.\n\nMy Contact Details:\nName:\nHostel/Room:\nPhone/WhatsApp:`
-                )}`}
-                className="btn btn-secondary h-11 w-full gap-2 text-xs font-medium sm:text-sm"
-              >
-                <Mail className="h-4 w-4 shrink-0 text-accent" />
-                Connect via Campus Support Email
-              </a>
-            </div>
-
-            <p className="mt-4 text-center text-[11px] text-faint">
-              Instant handoffs occur in common campus zones (hostel, library, canteen).
-            </p>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body
+        )}
 
       {/* Post a Wanted Item Modal with AI Auto-Fill */}
-      {isPosting && (
-        <PostWantedModal
-          onClose={() => setIsPosting(false)}
-          onSuccess={handlePostSuccess}
-        />
-      )}
+      {isPosting &&
+        typeof document !== "undefined" &&
+        createPortal(
+          <PostWantedModal
+            onClose={() => setIsPosting(false)}
+            onSuccess={handlePostSuccess}
+          />,
+          document.body
+        )}
     </section>
   );
 }
@@ -537,12 +599,12 @@ function PostWantedModal({ onClose, onSuccess }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto">
       <div
-        className="absolute inset-0 bg-ink/40 backdrop-blur-xs"
+        className="fixed inset-0"
         onClick={onClose}
       />
-      <div className="relative z-10 w-full max-w-lg overflow-hidden rounded-2xl border border-line bg-card shadow-2xl animate-in fade-in zoom-in-95 duration-150">
+      <div className="relative z-10 w-full max-w-lg overflow-hidden rounded-2xl border border-line bg-card shadow-2xl animate-in fade-in zoom-in-95 duration-150 my-auto">
         <div className="flex items-center justify-between border-b border-line px-5 py-4">
           <div className="flex items-center gap-2">
             <span className="flex h-7 w-7 items-center justify-center rounded-lg bg-accent-soft text-accent-deep">

@@ -12,11 +12,13 @@ import Marketplace from "./pages/Marketplace.jsx";
 import HowItWorks from "./pages/HowItWorks.jsx";
 import Sandbox from "./pages/Sandbox.jsx";
 import Download from "./pages/Download.jsx";
+import ProductPage from "./pages/ProductPage.jsx";
 import NotFound from "./pages/NotFound.jsx";
 
 const ROUTES = [
   { path: "/", element: <Home /> },
   { path: "/marketplace", element: <Marketplace /> },
+  { path: "/product/:id", element: <ProductPage /> },
   { path: "/how-it-works", element: <HowItWorks /> },
   { path: "/sandbox", element: <Sandbox /> },
   { path: "/download", element: <Download /> },
@@ -35,12 +37,16 @@ function Shell() {
   const mainRef = useRef(null);
 
   useEffect(() => {
-    document.title = TITLES[pathname] ?? "Page not found — CampusMart AI";
+    if (pathname.startsWith("/product/")) {
+      document.title = "Verified Item Details — CampusMart AI";
+    } else {
+      document.title = TITLES[pathname] ?? "Page not found — CampusMart AI";
+    }
   }, [pathname]);
 
   useEffect(() => {
     mainRef.current?.focus({ preventScroll: true });
-    window.scrollTo(0, 0);
+    window.scrollTo({ top: 0, behavior: "instant" });
   }, [pathname]);
 
   return (
@@ -54,7 +60,7 @@ function Shell() {
 
       <Nav />
 
-      <main id="main" ref={mainRef} tabIndex={-1} className="flex-1 outline-none pb-16 md:pb-0">
+      <main id="main" ref={mainRef} tabIndex={-1} className="flex-1 outline-none pb-24 md:pb-0">
         <Routes routes={ROUTES} notFound={<NotFound />} />
       </main>
 
