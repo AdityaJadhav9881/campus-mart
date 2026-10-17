@@ -90,12 +90,21 @@ The application is structured into 5 primary student-facing routes managed by `s
 - **Key Value Promises:** Verified campus email, Fair ₹ pricing from AI, 0% seller commission.
 - **Live Campus Counters:** Probes `fetchStats()` (`active listings` and `verified students`) updated in real time.
 - **Fresh on Campus Feed:** Preview rows showing real student listings; clicking any item opens the full `ProductDetailModal`.
+- **Wanted on Campus Preview Strip:** Showcases urgent student requests with instant cash opportunities for seniors and quick link to `/marketplace?tab=wanted`.
+- **Deep-Link Auto-Opening:** Supports `?item=<id-or-slug>` directly opening matching product modal.
 - **Primary CTAs:** Direct links to `/marketplace` and `/download`.
 
 ### Route 2: Marketplace (`/marketplace` — `src/pages/Marketplace.jsx`)
-- **Headline:** *"What students are selling right now"*
-- **Smart Semantic Search:** Searches across `title`, `description`, `category`, and visual AI inspection tags (`ai_tags`).
+- **Headline:** *"What students are trading right now"*
+- **Two Primary Tabs:**
+  1. `🛒 Browse Listings` — full catalog of active pre-owned student listings.
+  2. `📢 Want to Buy Board` — live interactive board where students post urgent items needed.
+- **WhatsApp Viral Loop & Deep-Link Opening:** Reads `?item=<id-or-slug>` on mount to automatically open the matching product detail modal. Reads `?tab=wanted` or `?wanted=` to auto-activate the Wanted board.
+- **Academic Department / Branch Filters:** Single-click pills (`All Branches`, `First Year (Common)`, `Computer / IT`, `Mechanical`, `Civil`, `Electrical / ENTC`, `Pharmacy`) powered by `inferAcademicMeta(product)` client-side classification.
+- **Academic Year Filters:** Single-click pills (`All Years`, `FE (1st Year)`, `SE (2nd Year)`, `TE (3rd Year)`, `BE (Final Year)`).
+- **Smart Semantic Search:** Searches across `title`, `description`, `category`, `college_name`, department, year, and visual AI inspection tags (`ai_tags`).
 - **Category Filter Pills:** Dynamic pills (`All`, `Academic Material`, `Electronics`, `Lab Equipment`, etc.).
+- **Campus / College Filter:** Filter by Maharashtra / Indian campus.
 - **5-Way Sort Dropdown:**
   1. `Featured` (default catalog order)
   2. `Price: Low to High`
@@ -124,6 +133,8 @@ The application is structured into 5 primary student-facing routes managed by `s
 ### Route 5: Android App & Student Auth (`/download` — `src/pages/Download.jsx`)
 - **Headline:** *"Get CampusMart AI on your phone."*
 - **Locked State (Guest):** Displays `AuthCard.jsx` to sign in or create an account with campus email.
+- **Searchable CET Directory College Selector:** Fast 3-tier searchable college picker with instant local search across 120+ Maharashtra CET Cell & non-CET institutions + live search fallback.
+- **Instant Fallback Verification:** Automatic detection of `fallback_otp_code` when carrier emails are delayed, providing an interactive one-click auto-fill amber banner.
 - **Unlocked State (Signed In):**
   - Displays verified student badge (`✓ <Name> · ★ 5.0 / 5 Verified Student`).
   - Direct download button for `campusmart-ai.apk`.
@@ -138,11 +149,29 @@ The application is structured into 5 primary student-facing routes managed by `s
 
 ### `ProductDetailModal.jsx` (Airbnb-Style Detail Modal)
 - **4-Photo Interactive Gallery:** Large primary image display with next/prev controls, counter pill (`1 / 4`), and a 4-thumbnail clickable strip mapping over `product.image_urls` (falling back to `[product.image_url]`).
+- **Academic & College Badges:** Displays `academic.badge` (e.g. `FE · First Year Common`, `SE · Computer/IT`) and verified college affiliation.
 - **AI Inspection Summary:** Surfaces `ai_condition_notes` with positive badge check.
 - **Visual Search Tags:** Renders hashtag pills from `product.ai_tags`.
 - **Fair Price Comparison:** Renders listed ₹ price alongside AI suggested fair value and green discount savings badge (e.g., `24% below AI estimate`).
 - **Seller Trust Card:** Renders seller name, verified email indicator, star ratings, and score formatted as `★ 4.9 / 5`.
+- **Viral WhatsApp Share & Copy Link:**
+  - One-click `"Share to Hostel / Batch WhatsApp"` button with formatted title, price, suggested fair value, college, dept, and deep link.
+  - `"Copy Link"` button with instant visual toast feedback (`"Link Copied!"`).
 - **Dual Action CTAs:**
+  - `"Get the App to Chat with Seller"` (routes to `/download`).
+  - `"Ask CampusMart AI About This Item"` (routes to `/sandbox` with pre-filled item context).
+
+### `WantedBoard.jsx` ("Want to Buy" Campus Request Board)
+- **Live Urgent Campus Requests:** Displays student requests fetched via `GET /wanted/` merged with pre-seeded Maharashtra requests (`src/data/wantedSeed.js`) and local persistence (`campusmart.wanted_posts.v1`).
+- **Urgency Badges:** Color-coded urgency pills (`🔥 Urgent for tomorrow's exam`, `🔥 Urgent for Monday submission`, `⚡ Needed this week`, etc.).
+- **AI Instant Match Indicator:** Checks active catalog listings against wanted items; if an item matches within budget, displays an interactive `"✨ 1 Matching Listing Found — View Deal"` button that opens `ProductDetailModal`.
+- **Quick Cash Actions:**
+  - `"I Have This · Sell & Earn ₹"` modal with app handoff and campus match email composition.
+  - `"Ask in WhatsApp Group"` button with pre-formatted broadcast message.
+- **"+ Post a Wanted Item" Modal with AI Auto-Fill:**
+  - Natural language input (*"Need Casio fx-991CW under ₹700 urgent for tomorrow exam"*).
+  - `"✨ Auto-Fill"` button invoking `aiDraftWantedRequest()` (with instant local NLP regex parsing fallback) to auto-extract Title, Budget, Urgency, Branch, and Academic Year.
+  - Instant optimistic posting to the board and background synchronization.
   1. `Get the App to Chat with Seller` (routes to `/download`)
   2. `Ask CampusMart AI About This Item` (routes to `/sandbox?item=...`)
 - **Accessibility:** Trap focus, body scroll lock, Escape key dismiss, backdrop blur click dismiss.
