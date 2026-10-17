@@ -319,6 +319,25 @@
   animation: warmup-slide 1.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
 }
 
+@keyframes laser-sweep {
+  0% {
+    top: 6%;
+    opacity: 0.2;
+  }
+  50% {
+    top: 92%;
+    opacity: 0.95;
+  }
+  100% {
+    top: 6%;
+    opacity: 0.2;
+  }
+}
+
+.laser-sweep {
+  animation: laser-sweep 2.8s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

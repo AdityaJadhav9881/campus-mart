@@ -84,3 +84,4 @@ export const SEED_WANTED_REQUESTS = [
     created_at: new Date(Date.now() - 1000 * 60 * 800).toISOString(),
   },
 ];
+

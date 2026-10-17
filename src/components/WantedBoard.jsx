@@ -711,3 +711,4 @@ function PostWantedModal({ onClose, onSuccess }) {
     </div>
   );
 }
+

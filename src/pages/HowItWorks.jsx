@@ -27,22 +27,44 @@ const ANGLE_ICONS = {
   wear: ScanEye,
 };
 
+const ANGLE_PREVIEWS = {
+  front: "https://images.unsplash.com/photo-1594980596870-8aa52a78d8cd?auto=format&fit=crop&w=600&q=80",
+  back: "https://images.unsplash.com/photo-1587145820266-a5951ee6f620?auto=format&fit=crop&w=600&q=80",
+  edges: "https://images.unsplash.com/photo-1611117765103-68d6f51fba05?auto=format&fit=crop&w=600&q=80",
+  wear: "https://images.unsplash.com/photo-1509228468518-180dd4864904?auto=format&fit=crop&w=600&q=80",
+};
+
 function AngleTile({ angle }) {
-  const Icon = ANGLE_ICONS[angle.id] ?? Camera;
+  const previewImg = ANGLE_PREVIEWS[angle.id];
   return (
-    <li className="relative aspect-[4/3] overflow-hidden rounded-xl border border-line bg-sunken p-3">
-      <span className="absolute left-3 top-3 rounded-full border border-line bg-card/95 px-2 py-0.5 text-[11px] font-medium text-ink-soft">
-        {angle.label}
-      </span>
+    <li className="group relative aspect-[4/3] overflow-hidden rounded-xl border border-line bg-ink/90 p-3 shadow-xs">
+      {previewImg && (
+        <img
+          src={previewImg}
+          alt={angle.label}
+          className="absolute inset-0 h-full w-full object-cover opacity-80 transition duration-300 group-hover:scale-105"
+        />
+      )}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/25 to-black/60 pointer-events-none" />
 
-      <span className="absolute inset-0 flex items-center justify-center text-faint">
-        <Icon className="h-6 w-6" aria-hidden="true" />
-      </span>
+      {/* Reticles */}
+      <div className="pointer-events-none absolute left-2.5 top-2.5 h-2.5 w-2.5 border-l-2 border-t-2 border-accent" />
+      <div className="pointer-events-none absolute right-2.5 top-2.5 h-2.5 w-2.5 border-r-2 border-t-2 border-accent" />
+      <div className="pointer-events-none absolute left-2.5 bottom-2.5 h-2.5 w-2.5 border-l-2 border-b-2 border-accent" />
+      <div className="pointer-events-none absolute right-2.5 bottom-2.5 h-2.5 w-2.5 border-r-2 border-b-2 border-accent" />
 
-      <span className="absolute inset-x-3 bottom-3 flex items-center gap-1.5 text-[11px] leading-tight text-muted">
-        <Check className="h-3 w-3 shrink-0 text-positive" aria-hidden="true" />
-        <span className="truncate">{angle.hint}</span>
-      </span>
+      <div className="relative z-10 flex h-full flex-col justify-between">
+        <div>
+          <span className="inline-flex items-center gap-1 rounded-md border border-white/20 bg-black/70 px-2 py-0.5 text-[11px] font-medium text-white backdrop-blur-xs">
+            {angle.label}
+          </span>
+        </div>
+
+        <span className="flex items-center gap-1.5 text-[11px] font-medium text-white drop-shadow-sm">
+          <Check className="h-3 w-3 shrink-0 text-positive" aria-hidden="true" />
+          <span className="truncate">{angle.hint}</span>
+        </span>
+      </div>
     </li>
   );
 }

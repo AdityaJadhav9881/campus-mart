@@ -7,6 +7,9 @@ import { demoListings } from "../data/demoListings.js";
 import { conditionLabel, productPrice, rupees, trustOutOf5 } from "../lib/format.js";
 import ProductDetailModal from "../components/ProductDetailModal.jsx";
 import WantedBoard from "../components/WantedBoard.jsx";
+import HeroGraphic from "../components/HeroGraphic.jsx";
+import TrustBadges from "../components/TrustBadges.jsx";
+import CategoryShowcase from "../components/CategoryShowcase.jsx";
 
 const MODE_LABEL = {
   loading: "Checking campus activity…",
@@ -48,11 +51,11 @@ function PreviewRow({ product, onOpen }) {
           onOpen(product);
         }
       }}
-      className="group flex cursor-pointer items-center gap-3 rounded-xl px-2 py-2.5 transition hover:bg-sunken/80 focus:bg-sunken"
+      className="group flex cursor-pointer items-center gap-3 rounded-xl px-2.5 py-2.5 transition hover:bg-sunken/80 focus:bg-sunken"
     >
-      <span className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-line bg-sunken text-faint group-hover:border-line-strong transition">
+      <span className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-line bg-sunken text-faint group-hover:border-line-strong transition">
         {product.image_url ? (
-          <img src={product.image_url} alt="" className="h-full w-full object-cover" />
+          <img src={product.image_url} alt="" className="h-full w-full object-cover group-hover:scale-105 transition-transform duration-300" />
         ) : (
           <Store className="h-4 w-4" aria-hidden="true" />
         )}
@@ -83,7 +86,7 @@ export default function Home() {
   const [selected, setSelected] = useState(null);
 
   const preview =
-    products.length > 0 ? products.slice(0, 3) : demoListings.slice(0, 3);
+    products.length > 0 ? products.slice(0, 4) : demoListings.slice(0, 4);
 
   // Deep-link query listener: ?item=<id-or-slug>
   useEffect(() => {
@@ -108,53 +111,80 @@ export default function Home() {
 
   return (
     <div className="page-in w-full">
-      <div className="mx-auto grid max-w-6xl items-start gap-8 px-5 py-8 sm:px-8 sm:py-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-center lg:gap-14 lg:py-12">
-        {/* Intro */}
-        <section className="min-w-0">
-          <p className="eyebrow">The campus marketplace</p>
+      {/* Hero Section with Interactive Graphic */}
+      <section className="relative overflow-hidden pt-6 pb-12 sm:pt-10 sm:pb-16 lg:py-16">
+        {/* Ambient background glow */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute left-1/2 top-0 -translate-x-1/2 h-[450px] w-full max-w-6xl bg-gradient-to-b from-accent/8 via-transparent to-transparent blur-3xl"
+        />
 
-          <h1 className="mt-3 text-3xl font-medium leading-tight sm:mt-4 sm:text-5xl sm:leading-[1.08]">
-            Buy and sell with people on your own campus.
-          </h1>
+        <div className="mx-auto grid max-w-6xl items-center gap-10 px-5 sm:px-8 lg:grid-cols-[1.1fr_0.9fr] lg:gap-14">
+          {/* Hero Typography & CTAs */}
+          <div className="min-w-0">
+            <div className="inline-flex items-center gap-2 rounded-full border border-line bg-card/80 px-3.5 py-1 text-xs font-semibold text-accent backdrop-blur-xs shadow-xs">
+              <span className="flex h-2 w-2 rounded-full bg-accent animate-ping" />
+              <span>Verified Maharashtra Campus Marketplace</span>
+            </div>
 
-          <p className="mt-3.5 max-w-xl text-[15px] leading-relaxed text-muted sm:mt-5 sm:text-base">
-            List a textbook, lab kit or gadget in under a minute. Our vision AI
-            reads four photos, suggests a fair resale price in ₹, and puts a
-            trust score next to every seller — so you know who you are dealing
-            with before you message them.
-          </p>
+            <h1 className="mt-4 text-3xl font-medium leading-[1.12] sm:text-5xl lg:text-[54px]">
+              Buy and sell with students on your own campus.
+            </h1>
 
-          <div className="mt-6 flex flex-col gap-3 sm:mt-7 sm:flex-row sm:items-center">
-            <Link to="/marketplace" className="btn btn-primary w-full sm:w-auto">
-              <Store className="h-4 w-4 shrink-0" aria-hidden="true" />
-              Browse Live Marketplace
-            </Link>
-            <Link to="/download" className="btn btn-secondary w-full sm:w-auto">
-              <Smartphone className="h-4 w-4 shrink-0" aria-hidden="true" />
-              Get the Android App
-            </Link>
+            <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-muted sm:text-base">
+              List a textbook, lab kit or gadget in under a minute. Our vision AI
+              reads four photos, suggests a fair resale price in ₹, and puts a
+              trust score next to every seller — so you know who you are dealing
+              with before you message them.
+            </p>
+
+            <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
+              <Link to="/marketplace" className="btn btn-primary w-full sm:w-auto shadow-sm">
+                <Store className="h-4 w-4 shrink-0" aria-hidden="true" />
+                Browse Live Marketplace
+              </Link>
+              <Link to="/download" className="btn btn-secondary w-full sm:w-auto">
+                <Smartphone className="h-4 w-4 shrink-0" aria-hidden="true" />
+                Get the Android App
+              </Link>
+            </div>
+
+            <ul className="mt-7 flex flex-wrap gap-x-5 gap-y-2.5">
+              {PROMISES.map((item) => (
+                <li
+                  key={item}
+                  className="flex items-center gap-2 text-[13px] text-muted font-medium"
+                >
+                  <Check className="h-3.5 w-3.5 shrink-0 text-positive" aria-hidden="true" />
+                  <span>{item}</span>
+                </li>
+              ))}
+            </ul>
           </div>
 
-          <ul className="mt-6 flex flex-wrap gap-x-5 gap-y-2.5 sm:mt-7">
-            {PROMISES.map((item) => (
-              <li
-                key={item}
-                className="flex items-center gap-2 text-[13px] text-muted"
-              >
-                <Check className="h-3.5 w-3.5 shrink-0 text-positive" aria-hidden="true" />
-                <span>{item}</span>
-              </li>
-            ))}
-          </ul>
-        </section>
+          {/* Hero Graphic: Apple/Stripe-tier 4-Angle AI Viewfinder */}
+          <div className="min-w-0 flex justify-center lg:justify-end">
+            <HeroGraphic />
+          </div>
+        </div>
+      </section>
 
-        {/* Live counters + previews */}
-        <aside className="min-w-0 space-y-4">
-          <div className="card p-4 sm:p-5">
+      {/* Trust & Safety Architecture Strip */}
+      <TrustBadges />
+
+      {/* Visual Category Showcase */}
+      <CategoryShowcase />
+
+      {/* Live Campus Activity & Fresh Listings Section */}
+      <section className="mx-auto max-w-6xl px-5 py-10 sm:px-8 sm:py-14">
+        <div className="grid gap-6 lg:grid-cols-[1fr_1.4fr] items-start">
+          {/* Live Activity Counters */}
+          <div className="card p-5 sm:p-6 shadow-xs">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <p className="text-sm font-medium text-ink">
-                Campus Activity
-              </p>
+              <div>
+                <span className="eyebrow">Real-Time Pulse</span>
+                <h3 className="mt-1 text-lg font-medium text-ink">Campus Activity</h3>
+              </div>
               <span
                 className={`inline-flex shrink-0 items-center gap-2 rounded-full border px-2.5 py-1 text-[11px] font-medium ${
                   mode === "live"
@@ -176,35 +206,40 @@ export default function Home() {
               </span>
             </div>
 
-            <dl className="mt-4 grid grid-cols-2 gap-3">
+            <dl className="mt-5 grid grid-cols-2 gap-3">
               <Counter term="Active listings" value={listings} />
               <Counter term="Verified students" value={students} />
             </dl>
 
-            <div className="mt-4 flex items-center justify-end gap-3 border-t border-line pt-3">
+            <div className="mt-5 flex items-center justify-between border-t border-line pt-3.5 text-xs text-muted">
+              <span>Updated automatically every minute</span>
               <button
                 type="button"
                 onClick={refresh}
-                className="text-xs font-medium text-accent transition-colors hover:text-accent-deep"
+                className="font-medium text-accent hover:text-accent-deep transition-colors"
               >
-                Refresh
+                Refresh feed
               </button>
             </div>
           </div>
 
-          <div className="card p-4 sm:p-5">
+          {/* Fresh On Campus Preview Card */}
+          <div className="card p-5 sm:p-6 shadow-xs">
             <div className="flex items-baseline justify-between gap-3">
-              <h2 className="text-lg leading-none">Fresh on campus</h2>
+              <div>
+                <span className="eyebrow">Verified Inventory</span>
+                <h3 className="mt-1 text-lg font-medium text-ink">Fresh on campus</h3>
+              </div>
               <Link
                 to="/marketplace"
-                className="inline-flex items-center gap-1.5 text-[13px] font-medium text-accent transition-colors hover:text-accent-deep"
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-accent hover:text-accent-deep transition-colors"
               >
-                All listings
+                <span>View all listings</span>
                 <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />
               </Link>
             </div>
 
-            <ul className="mt-1 divide-y divide-line">
+            <ul className="mt-3 divide-y divide-line">
               {preview.map((product) => (
                 <PreviewRow
                   key={product.id}
@@ -214,18 +249,18 @@ export default function Home() {
               ))}
             </ul>
 
-            <p className="mt-2 text-[11px] text-faint">
+            <p className="mt-3 text-[11px] text-faint">
               {products.length > 0
-                ? "Recently posted by verified students."
-                : "Showing popular items while we reconnect."}
+                ? "Recently listed and verified with 4-angle vision AI."
+                : "Showing verified popular items while catalog reconnects."}
             </p>
           </div>
-        </aside>
-      </div>
+        </div>
+      </section>
 
       {/* Wanted on Campus Preview Strip */}
-      <section className="mx-auto max-w-6xl px-5 pt-6 pb-14 sm:px-8 sm:pb-20">
-        <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+      <section className="mx-auto max-w-6xl px-5 pt-4 pb-14 sm:px-8 sm:pb-20 border-t border-line">
+        <div className="mb-6 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between pt-6">
           <div>
             <div className="flex items-center gap-2">
               <span className="flex h-2 w-2 rounded-full bg-accent" />
@@ -240,7 +275,7 @@ export default function Home() {
           </div>
           <Link
             to="/marketplace?tab=wanted"
-            className="inline-flex items-center gap-1.5 text-xs font-medium text-accent transition-colors hover:text-accent-deep sm:text-sm"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-accent hover:text-accent-deep sm:text-sm transition-colors"
           >
             <span>View all campus requests</span>
             <ArrowRight className="h-4 w-4" aria-hidden="true" />
